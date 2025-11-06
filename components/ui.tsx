@@ -33,12 +33,15 @@ export function UI() {
           key={type}
           onClick={() => setSelectedBlockType(type)}
           className={cn(
-            "w-16 h-16 rounded-lg border-4 transition-all hover:scale-110",
+            "w-16 h-16 rounded-lg border-4 transition-all hover:scale-110 relative",
             BLOCK_COLORS[type],
             selectedBlockType === type ? "border-white shadow-lg scale-110" : "border-black/30",
           )}
           title={`${BLOCK_NAMES[type]} (${index + 1})`}
         >
+          {selectedBlockType === type && (
+            <div className="absolute inset-0 bg-white/30 rounded-md pointer-events-none" />
+          )}
           <span className="sr-only">{BLOCK_NAMES[type]}</span>
         </button>
       ))}

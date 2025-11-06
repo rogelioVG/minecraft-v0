@@ -3,19 +3,26 @@
 import { useRef, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import { RigidBody, CapsuleCollider } from "@react-three/rapier"
-import { Vector3 } from "three"
+import { Vector3, Euler, Group } from "three"
 import { useGameStore } from "@/lib/game-store"
+import { LinkCharacter } from "./link-character"
 
 const MOVE_SPEED = 5
 const SPRINT_SPEED = 8
 const JUMP_FORCE = 8
+const CAMERA_DISTANCE = 5
+const CAMERA_HEIGHT = 2
+const CAMERA_MIN_HEIGHT = 1.5
 
 export function Player() {
   const { camera } = useThree()
   const rigidBodyRef = useRef<any>(null)
+  const characterRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
   const { isPlaying } = useGameStore()
+  const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
+  const characterRotation = useRef(0)
 
   const movement = useRef({
     forward: false,
@@ -76,12 +83,25 @@ export function Player() {
       }
     }
 
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPlaying) return
+
+      const sensitivity = 0.002
+      cameraRotation.current.horizontal -= e.movementX * sensitivity
+      cameraRotation.current.vertical -= e.movementY * sensitivity
+
+      // Clamp vertical rotation
+      cameraRotation.current.vertical = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotation.current.vertical))
+    }
+
     document.addEventListener("keydown", handleKeyDown)
     document.addEventListener("keyup", handleKeyUp)
+    document.addEventListener("mousemove", handleMouseMove)
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
       document.removeEventListener("keyup", handleKeyUp)
+      document.removeEventListener("mousemove", handleMouseMove)
     }
   }, [isPlaying])
 
@@ -104,11 +124,19 @@ export function Player() {
     if (movement.current.left) direction.x -= 1
     if (movement.current.right) direction.x += 1
 
-    if (direction.length() > 0) {
+    const isMoving = direction.length() > 0
+
+    if (isMoving) {
       direction.normalize()
-      direction.applyEuler(camera.rotation)
+
+      // Apply camera rotation to movement
+      const euler = new Euler(0, cameraRotation.current.horizontal, 0, 'YXZ')
+      direction.applyEuler(euler)
       direction.y = 0
       direction.normalize()
+
+      // Update character rotation to face movement direction
+      characterRotation.current = Math.atan2(direction.x, direction.z)
     }
 
     rb.setLinvel(
@@ -132,9 +160,33 @@ export function Player() {
       )
     }
 
-    // Update camera position
+    // Update character rotation
+    if (characterRef.current) {
+      characterRef.current.rotation.y = characterRotation.current
+    }
+
+    // Update camera position for 3rd person view
     const pos = rb.translation()
-    camera.position.set(pos.x, pos.y + 0.5, pos.z)
+    const cameraOffset = new Vector3(
+      Math.sin(cameraRotation.current.horizontal) * CAMERA_DISTANCE,
+      CAMERA_HEIGHT + Math.sin(cameraRotation.current.vertical) * CAMERA_DISTANCE,
+      Math.cos(cameraRotation.current.horizontal) * CAMERA_DISTANCE
+    )
+
+    // Calculate desired camera position
+    let cameraY = pos.y + cameraOffset.y
+
+    // Prevent camera from going below minimum height (floor collision)
+    cameraY = Math.max(cameraY, CAMERA_MIN_HEIGHT)
+
+    camera.position.set(
+      pos.x + cameraOffset.x,
+      cameraY,
+      pos.z + cameraOffset.z
+    )
+
+    // Look at character
+    camera.lookAt(pos.x, pos.y + 1, pos.z)
   })
 
   return (
@@ -148,6 +200,9 @@ export function Player() {
       linearDamping={0.5}
     >
       <CapsuleCollider args={[0.5, 0.5]} />
+      <group ref={characterRef} position={[0, -0.5, 0]}>
+        <LinkCharacter />
+      </group>
     </RigidBody>
   )
 }

@@ -43,9 +43,10 @@ export function MinecraftGame() {
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
           <div className="text-center pointer-events-auto">
             <h1 className="text-6xl font-bold text-white mb-4">Voxel Craft</h1>
-            <p className="text-xl text-white/90 mb-8">Click to start building</p>
+            <p className="text-xl text-white/90 mb-8">Play as Link in 3rd person!</p>
             <div className="text-sm text-white/70 space-y-2">
               <p>WASD - Move | Space - Jump | Shift - Sprint</p>
+              <p>Mouse - Rotate Camera</p>
               <p>Left Click - Break Block | Right Click - Place Block</p>
               <p>1-5 - Select Block Type | ESC - Pause</p>
             </div>
