@@ -4,18 +4,20 @@ import { useRef, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import { RigidBody, CapsuleCollider } from "@react-three/rapier"
 import { Vector3 } from "three"
-import { useGameStore } from "@/lib/game-store"
+import { useGameStore, type BlockType } from "@/lib/game-store"
 
 const MOVE_SPEED = 5
 const SPRINT_SPEED = 8
 const JUMP_FORCE = 8
+
+const BLOCK_TYPES: BlockType[] = ["grass", "dirt", "stone", "wood", "sand"]
 
 export function Player() {
   const { camera } = useThree()
   const rigidBodyRef = useRef<any>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const { isPlaying } = useGameStore()
+  const { isPlaying, setSelectedBlockType } = useGameStore()
 
   const movement = useRef({
     forward: false,
@@ -50,6 +52,26 @@ export function Player() {
         case "ShiftLeft":
           movement.current.sprint = true
           break
+        case "Digit1":
+        case "Numpad1":
+          setSelectedBlockType(BLOCK_TYPES[0])
+          break
+        case "Digit2":
+        case "Numpad2":
+          setSelectedBlockType(BLOCK_TYPES[1])
+          break
+        case "Digit3":
+        case "Numpad3":
+          setSelectedBlockType(BLOCK_TYPES[2])
+          break
+        case "Digit4":
+        case "Numpad4":
+          setSelectedBlockType(BLOCK_TYPES[3])
+          break
+        case "Digit5":
+        case "Numpad5":
+          setSelectedBlockType(BLOCK_TYPES[4])
+          break
       }
     }
 
@@ -83,7 +105,7 @@ export function Player() {
       document.removeEventListener("keydown", handleKeyDown)
       document.removeEventListener("keyup", handleKeyUp)
     }
-  }, [isPlaying])
+  }, [isPlaying, setSelectedBlockType])
 
   useFrame(() => {
     if (!rigidBodyRef.current || !isPlaying) return
