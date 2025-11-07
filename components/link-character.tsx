@@ -14,18 +14,18 @@ export function LinkCharacter() {
         <meshStandardMaterial color="#ffdbac" />
       </mesh>
 
-      {/* Hat - green pointed */}
+      {/* Hat - red pointed */}
       <mesh position={[0, 2.15, 0]} castShadow>
         <boxGeometry args={[0.5, 0.3, 0.5]} />
-        <meshStandardMaterial color="#2d5016" />
+        <meshStandardMaterial color="#c41e3a" />
       </mesh>
       <mesh position={[0, 2.4, 0]} castShadow>
         <boxGeometry args={[0.4, 0.2, 0.4]} />
-        <meshStandardMaterial color="#2d5016" />
+        <meshStandardMaterial color="#c41e3a" />
       </mesh>
       <mesh position={[0, 2.55, 0]} castShadow>
         <boxGeometry args={[0.3, 0.15, 0.3]} />
-        <meshStandardMaterial color="#2d5016" />
+        <meshStandardMaterial color="#c41e3a" />
       </mesh>
 
       {/* Hair - blonde */}
@@ -48,10 +48,10 @@ export function LinkCharacter() {
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
 
-      {/* Body/Tunic - green */}
+      {/* Body/Tunic - red */}
       <mesh position={[0, 1.1, 0]} castShadow>
         <boxGeometry args={[0.7, 0.8, 0.5]} />
-        <meshStandardMaterial color="#2d5016" />
+        <meshStandardMaterial color="#c41e3a" />
       </mesh>
 
       {/* Belt - brown */}
@@ -66,14 +66,14 @@ export function LinkCharacter() {
         <meshStandardMaterial color="#ffd700" />
       </mesh>
 
-      {/* Arms - green tunic sleeves */}
+      {/* Arms - red tunic sleeves */}
       <mesh position={[-0.45, 1.1, 0]} castShadow>
         <boxGeometry args={[0.25, 0.7, 0.25]} />
-        <meshStandardMaterial color="#2d5016" />
+        <meshStandardMaterial color="#c41e3a" />
       </mesh>
       <mesh position={[0.45, 1.1, 0]} castShadow>
         <boxGeometry args={[0.25, 0.7, 0.25]} />
-        <meshStandardMaterial color="#2d5016" />
+        <meshStandardMaterial color="#c41e3a" />
       </mesh>
 
       {/* Hands - beige/tan */}
