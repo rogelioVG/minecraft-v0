@@ -10,9 +10,10 @@ import { LinkCharacter } from "./link-character"
 const MOVE_SPEED = 5
 const SPRINT_SPEED = 8
 const JUMP_FORCE = 8
-const CAMERA_DISTANCE = 5
-const CAMERA_HEIGHT = 2
+const CAMERA_DISTANCE = 6
+const CAMERA_HEIGHT = 2.5
 const CAMERA_MIN_HEIGHT = 1.5
+const CAMERA_SMOOTHING = 0.1
 
 export function Player() {
   const { camera } = useThree()
@@ -23,6 +24,8 @@ export function Player() {
   const { isPlaying } = useGameStore()
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
+  const targetCameraPosition = useRef(new Vector3())
+  const currentCameraPosition = useRef(new Vector3())
 
   const movement = useRef({
     forward: false,
@@ -32,6 +35,26 @@ export function Player() {
     jump: false,
     sprint: false,
   })
+
+  // Initialize camera position
+  useEffect(() => {
+    if (rigidBodyRef.current) {
+      const pos = rigidBodyRef.current.translation()
+      const initialOffset = new Vector3(
+        Math.sin(cameraRotation.current.horizontal) * CAMERA_DISTANCE,
+        CAMERA_HEIGHT,
+        Math.cos(cameraRotation.current.horizontal) * CAMERA_DISTANCE
+      )
+      const initialPos = new Vector3(
+        pos.x + initialOffset.x,
+        pos.y + initialOffset.y,
+        pos.z + initialOffset.z
+      )
+      targetCameraPosition.current.copy(initialPos)
+      currentCameraPosition.current.copy(initialPos)
+      camera.position.copy(initialPos)
+    }
+  }, [camera])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,7 +107,7 @@ export function Player() {
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isPlaying) return
+      if (!isPlaying || document.pointerLockElement === null) return
 
       const sensitivity = 0.002
       cameraRotation.current.horizontal -= e.movementX * sensitivity
@@ -94,14 +117,23 @@ export function Player() {
       cameraRotation.current.vertical = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotation.current.vertical))
     }
 
+    const handlePointerLockChange = () => {
+      if (document.pointerLockElement === null) {
+        // Pointer lock was released (e.g., ESC pressed)
+        // We'll let the game state handle this
+      }
+    }
+
     document.addEventListener("keydown", handleKeyDown)
     document.addEventListener("keyup", handleKeyUp)
     document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("pointerlockchange", handlePointerLockChange)
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
       document.removeEventListener("keyup", handleKeyUp)
       document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("pointerlockchange", handlePointerLockChange)
     }
   }, [isPlaying])
 
@@ -167,26 +199,32 @@ export function Player() {
 
     // Update camera position for 3rd person view
     const pos = rb.translation()
+    
+    // Calculate camera offset based on rotation
+    const horizontalDistance = Math.cos(cameraRotation.current.vertical) * CAMERA_DISTANCE
     const cameraOffset = new Vector3(
-      Math.sin(cameraRotation.current.horizontal) * CAMERA_DISTANCE,
+      Math.sin(cameraRotation.current.horizontal) * horizontalDistance,
       CAMERA_HEIGHT + Math.sin(cameraRotation.current.vertical) * CAMERA_DISTANCE,
-      Math.cos(cameraRotation.current.horizontal) * CAMERA_DISTANCE
+      Math.cos(cameraRotation.current.horizontal) * horizontalDistance
     )
 
-    // Calculate desired camera position
-    let cameraY = pos.y + cameraOffset.y
+    // Calculate target camera position
+    let targetY = pos.y + cameraOffset.y
+    targetY = Math.max(targetY, CAMERA_MIN_HEIGHT)
 
-    // Prevent camera from going below minimum height (floor collision)
-    cameraY = Math.max(cameraY, CAMERA_MIN_HEIGHT)
-
-    camera.position.set(
+    targetCameraPosition.current.set(
       pos.x + cameraOffset.x,
-      cameraY,
+      targetY,
       pos.z + cameraOffset.z
     )
 
-    // Look at character
-    camera.lookAt(pos.x, pos.y + 1, pos.z)
+    // Smooth camera movement (lerp)
+    currentCameraPosition.current.lerp(targetCameraPosition.current, CAMERA_SMOOTHING)
+    
+    camera.position.copy(currentCameraPosition.current)
+
+    // Look at character (aim point slightly above center)
+    camera.lookAt(pos.x, pos.y + 1.2, pos.z)
   })
 
   return (
