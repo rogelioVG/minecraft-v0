@@ -185,8 +185,19 @@ export function Player() {
       pos.z + cameraOffset.z
     )
 
-    // Look at character
-    camera.lookAt(pos.x, pos.y + 1, pos.z)
+    // Over-the-shoulder view: offset lookAt point to the left so character appears on the right
+    const shoulderOffset = 1.2 // Adjust this value to move character more/less to the right
+    const lookAtOffset = new Vector3(
+      -Math.cos(cameraRotation.current.horizontal) * shoulderOffset,
+      0,
+      Math.sin(cameraRotation.current.horizontal) * shoulderOffset
+    )
+    
+    camera.lookAt(
+      pos.x + lookAtOffset.x,
+      pos.y + 1,
+      pos.z + lookAtOffset.z
+    )
   })
 
   return (
