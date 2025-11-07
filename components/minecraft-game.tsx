@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas } from "@react-three/fiber"
-import { Sky, PointerLockControls } from "@react-three/drei"
+import { Sky } from "@react-three/drei"
 import { Physics } from "@react-three/rapier"
 import { World } from "./world"
 import { Player } from "./player"
@@ -11,9 +11,21 @@ import { useGameStore } from "@/lib/game-store"
 export function MinecraftGame() {
   const { isPlaying, setIsPlaying } = useGameStore()
 
+  const handleCanvasClick = () => {
+    if (!isPlaying) {
+      setIsPlaying(true)
+      // Request pointer lock for mouse control
+      document.body.requestPointerLock()
+    }
+  }
+
   return (
     <div className="w-full h-screen relative">
-      <Canvas shadows camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 10, 0] }}>
+      <Canvas 
+        shadows 
+        camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 10, 0] }}
+        onClick={handleCanvasClick}
+      >
         <Sky sunPosition={[100, 20, 100]} />
         <ambientLight intensity={0.5} />
         <directionalLight
@@ -33,8 +45,6 @@ export function MinecraftGame() {
           <Player />
           <World />
         </Physics>
-
-        <PointerLockControls onLock={() => setIsPlaying(true)} onUnlock={() => setIsPlaying(false)} />
       </Canvas>
 
       <UI />
@@ -45,8 +55,9 @@ export function MinecraftGame() {
             <h1 className="text-6xl font-bold text-white mb-4">Voxel Craft</h1>
             <p className="text-xl text-white/90 mb-8">Play as Link in 3rd person!</p>
             <div className="text-sm text-white/70 space-y-2">
+              <p>Click to start</p>
               <p>WASD - Move | Space - Jump | Shift - Sprint</p>
-              <p>Mouse - Rotate Camera</p>
+              <p>Mouse - Rotate Camera Around Player</p>
               <p>Left Click - Break Block | Right Click - Place Block</p>
               <p>1-5 - Select Block Type | ESC - Pause</p>
             </div>
