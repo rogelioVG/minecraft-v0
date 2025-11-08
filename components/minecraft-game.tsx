@@ -46,7 +46,7 @@ export function MinecraftGame() {
             <p className="text-xl text-white/90 mb-8">Play as Link in 3rd person!</p>
             <div className="text-sm text-white/70 space-y-2">
               <p>WASD - Move | Space - Jump | Shift - Sprint</p>
-              <p>Mouse - Rotate Camera</p>
+              <p>Mouse - Rotate Camera | X - Toggle View</p>
               <p>Left Click - Break Block | Right Click - Place Block</p>
               <p>1-5 - Select Block Type | ESC - Pause</p>
             </div>
