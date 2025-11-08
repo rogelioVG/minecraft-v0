@@ -57,6 +57,21 @@ export function Player() {
         case "ShiftLeft":
           movement.current.sprint = true
           break
+        case "Digit1":
+          useGameStore.getState().setSelectedBlockType("grass")
+          break
+        case "Digit2":
+          useGameStore.getState().setSelectedBlockType("dirt")
+          break
+        case "Digit3":
+          useGameStore.getState().setSelectedBlockType("stone")
+          break
+        case "Digit4":
+          useGameStore.getState().setSelectedBlockType("wood")
+          break
+        case "Digit5":
+          useGameStore.getState().setSelectedBlockType("sand")
+          break
       }
     }
 
