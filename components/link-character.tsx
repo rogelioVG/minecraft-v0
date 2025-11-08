@@ -11,10 +11,10 @@ interface LinkCharacterProps {
 export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacterProps) {
   const groupRef = useRef<Group>(null)
   
-  // Calculate animation values
-  const legSwing = isWalking ? Math.sin(walkCycle * 8) * 0.3 : 0
-  const armSwing = isWalking ? Math.sin(walkCycle * 8) * 0.2 : 0
-  const bodyBob = isWalking ? Math.abs(Math.sin(walkCycle * 16)) * 0.05 : 0
+  // Calculate animation values with more pronounced movement
+  const legSwing = isWalking ? Math.sin(walkCycle * 5) * 0.6 : 0
+  const armSwing = isWalking ? Math.sin(walkCycle * 5) * 0.4 : 0
+  const bodyBob = isWalking ? Math.abs(Math.sin(walkCycle * 10)) * 0.08 : 0
 
   return (
     <group ref={groupRef} position={[0, bodyBob, 0]}>
