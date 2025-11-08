@@ -20,7 +20,7 @@ export function Player() {
   const characterRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const { isPlaying } = useGameStore()
+  const { isPlaying, isFirstPerson } = useGameStore()
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
 
@@ -71,6 +71,9 @@ export function Player() {
           break
         case "Digit5":
           useGameStore.getState().setSelectedBlockType("sand")
+          break
+        case "KeyX":
+          useGameStore.getState().toggleViewMode()
           break
       }
     }
@@ -180,39 +183,58 @@ export function Player() {
       characterRef.current.rotation.y = characterRotation.current
     }
 
-    // Update camera position for 3rd person view
+    // Update camera position based on view mode
     const pos = rb.translation()
-    const cameraOffset = new Vector3(
-      Math.sin(cameraRotation.current.horizontal) * CAMERA_DISTANCE,
-      CAMERA_HEIGHT + Math.sin(cameraRotation.current.vertical) * CAMERA_DISTANCE,
-      Math.cos(cameraRotation.current.horizontal) * CAMERA_DISTANCE
-    )
 
-    // Calculate desired camera position
-    let cameraY = pos.y + cameraOffset.y
+    if (isFirstPerson) {
+      // First-person view: camera at player's eye level
+      camera.position.set(
+        pos.x,
+        pos.y + 1.6, // Eye level height
+        pos.z
+      )
 
-    // Prevent camera from going below minimum height (floor collision)
-    cameraY = Math.max(cameraY, CAMERA_MIN_HEIGHT)
+      // Look in the direction based on camera rotation
+      const lookAtPoint = new Vector3(
+        pos.x - Math.sin(cameraRotation.current.horizontal) * 10,
+        pos.y + 1.6 - Math.sin(cameraRotation.current.vertical) * 10,
+        pos.z - Math.cos(cameraRotation.current.horizontal) * 10
+      )
+      camera.lookAt(lookAtPoint)
+    } else {
+      // Third-person view
+      const cameraOffset = new Vector3(
+        Math.sin(cameraRotation.current.horizontal) * CAMERA_DISTANCE,
+        CAMERA_HEIGHT + Math.sin(cameraRotation.current.vertical) * CAMERA_DISTANCE,
+        Math.cos(cameraRotation.current.horizontal) * CAMERA_DISTANCE
+      )
 
-    camera.position.set(
-      pos.x + cameraOffset.x,
-      cameraY,
-      pos.z + cameraOffset.z
-    )
+      // Calculate desired camera position
+      let cameraY = pos.y + cameraOffset.y
 
-    // Over-the-shoulder view: offset lookAt point to the left so character appears on the right
-    const shoulderOffset = 1.2 // Adjust this value to move character more/less to the right
-    const lookAtOffset = new Vector3(
-      -Math.cos(cameraRotation.current.horizontal) * shoulderOffset,
-      0,
-      Math.sin(cameraRotation.current.horizontal) * shoulderOffset
-    )
-    
-    camera.lookAt(
-      pos.x + lookAtOffset.x,
-      pos.y + 1,
-      pos.z + lookAtOffset.z
-    )
+      // Prevent camera from going below minimum height (floor collision)
+      cameraY = Math.max(cameraY, CAMERA_MIN_HEIGHT)
+
+      camera.position.set(
+        pos.x + cameraOffset.x,
+        cameraY,
+        pos.z + cameraOffset.z
+      )
+
+      // Over-the-shoulder view: offset lookAt point to the left so character appears on the right
+      const shoulderOffset = 1.2 // Adjust this value to move character more/less to the right
+      const lookAtOffset = new Vector3(
+        -Math.cos(cameraRotation.current.horizontal) * shoulderOffset,
+        0,
+        Math.sin(cameraRotation.current.horizontal) * shoulderOffset
+      )
+      
+      camera.lookAt(
+        pos.x + lookAtOffset.x,
+        pos.y + 1,
+        pos.z + lookAtOffset.z
+      )
+    }
   })
 
   return (

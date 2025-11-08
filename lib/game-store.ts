@@ -12,21 +12,26 @@ interface GameState {
   blocks: Block[]
   selectedBlockType: BlockType
   isPlaying: boolean
+  isFirstPerson: boolean
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
   initializeWorld: (size: number, height: number) => void
   setIsPlaying: (playing: boolean) => void
+  toggleViewMode: () => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
   blocks: [],
   selectedBlockType: "grass",
   isPlaying: false,
+  isFirstPerson: false,
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
   setIsPlaying: (playing) => set({ isPlaying: playing }),
+
+  toggleViewMode: () => set((state) => ({ isFirstPerson: !state.isFirstPerson })),
 
   addBlock: (position, type) =>
     set((state) => ({
