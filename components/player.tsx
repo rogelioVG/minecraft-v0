@@ -248,9 +248,11 @@ export function Player() {
       linearDamping={0.5}
     >
       <CapsuleCollider args={[0.5, 0.5]} />
-      <group ref={characterRef} position={[0, -0.5, 0]}>
-        <LinkCharacter />
-      </group>
+      {!isFirstPerson && (
+        <group ref={characterRef} position={[0, -0.5, 0]}>
+          <LinkCharacter />
+        </group>
+      )}
     </RigidBody>
   )
 }
