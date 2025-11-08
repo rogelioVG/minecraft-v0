@@ -107,7 +107,7 @@ export function Player() {
     }
   }, [isPlaying])
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (!rigidBodyRef.current || !isPlaying) return
 
     const rb = rigidBodyRef.current
@@ -163,9 +163,14 @@ export function Player() {
       )
     }
 
-    // Update walk cycle
+    // Update walk cycle based on actual speed and delta time
     if (isMoving.current && isOnGround.current) {
-      walkCycle.current += 0.016 // Approximate delta time
+      // Make walk cycle speed proportional to movement speed
+      const cycleSpeed = speed / MOVE_SPEED // 1.0 for walking, 1.6 for sprinting
+      walkCycle.current += delta * cycleSpeed
+    } else {
+      // Reset walk cycle when not moving for smooth start
+      walkCycle.current = 0
     }
 
     // Update character rotation
