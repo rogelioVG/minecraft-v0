@@ -3,11 +3,21 @@
 import { useRef } from "react"
 import { Group } from "three"
 
-export function LinkCharacter() {
+interface LinkCharacterProps {
+  isWalking?: boolean
+  walkCycle?: number
+}
+
+export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacterProps) {
   const groupRef = useRef<Group>(null)
+  
+  // Calculate animation values
+  const legSwing = isWalking ? Math.sin(walkCycle * 8) * 0.3 : 0
+  const armSwing = isWalking ? Math.sin(walkCycle * 8) * 0.2 : 0
+  const bodyBob = isWalking ? Math.abs(Math.sin(walkCycle * 16)) * 0.05 : 0
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[0, bodyBob, 0]}>
       {/* Head - beige/tan */}
       <mesh position={[0, 1.75, 0]} castShadow>
         <boxGeometry args={[0.5, 0.5, 0.5]} />
@@ -66,45 +76,55 @@ export function LinkCharacter() {
         <meshStandardMaterial color="#ffd700" />
       </mesh>
 
-      {/* Arms - green tunic sleeves */}
-      <mesh position={[-0.45, 1.1, 0]} castShadow>
-        <boxGeometry args={[0.25, 0.7, 0.25]} />
-        <meshStandardMaterial color="#2d5016" />
-      </mesh>
-      <mesh position={[0.45, 1.1, 0]} castShadow>
-        <boxGeometry args={[0.25, 0.7, 0.25]} />
-        <meshStandardMaterial color="#2d5016" />
-      </mesh>
+      {/* Arms - green tunic sleeves with animation */}
+      <group position={[-0.45, 1.1, 0]} rotation={[armSwing, 0, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.25, 0.7, 0.25]} />
+          <meshStandardMaterial color="#2d5016" />
+        </mesh>
+        {/* Hand - beige/tan */}
+        <mesh position={[0, -0.5, 0]} castShadow>
+          <boxGeometry args={[0.2, 0.25, 0.2]} />
+          <meshStandardMaterial color="#ffdbac" />
+        </mesh>
+      </group>
+      
+      <group position={[0.45, 1.1, 0]} rotation={[-armSwing, 0, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.25, 0.7, 0.25]} />
+          <meshStandardMaterial color="#2d5016" />
+        </mesh>
+        {/* Hand - beige/tan */}
+        <mesh position={[0, -0.5, 0]} castShadow>
+          <boxGeometry args={[0.2, 0.25, 0.2]} />
+          <meshStandardMaterial color="#ffdbac" />
+        </mesh>
+      </group>
 
-      {/* Hands - beige/tan */}
-      <mesh position={[-0.45, 0.6, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.25, 0.2]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
-      <mesh position={[0.45, 0.6, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.25, 0.2]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
-
-      {/* Legs - white/cream leggings */}
-      <mesh position={[-0.2, 0.35, 0]} castShadow>
-        <boxGeometry args={[0.25, 0.7, 0.3]} />
-        <meshStandardMaterial color="#f5f5dc" />
-      </mesh>
-      <mesh position={[0.2, 0.35, 0]} castShadow>
-        <boxGeometry args={[0.25, 0.7, 0.3]} />
-        <meshStandardMaterial color="#f5f5dc" />
-      </mesh>
-
-      {/* Boots - brown */}
-      <mesh position={[-0.2, -0.05, 0.05]} castShadow>
-        <boxGeometry args={[0.3, 0.2, 0.4]} />
-        <meshStandardMaterial color="#5c3317" />
-      </mesh>
-      <mesh position={[0.2, -0.05, 0.05]} castShadow>
-        <boxGeometry args={[0.3, 0.2, 0.4]} />
-        <meshStandardMaterial color="#5c3317" />
-      </mesh>
+      {/* Legs - white/cream leggings with animation */}
+      <group position={[-0.2, 0.35, 0]} rotation={[-legSwing, 0, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.25, 0.7, 0.3]} />
+          <meshStandardMaterial color="#f5f5dc" />
+        </mesh>
+        {/* Boot - brown */}
+        <mesh position={[0, -0.4, 0.05]} castShadow>
+          <boxGeometry args={[0.3, 0.2, 0.4]} />
+          <meshStandardMaterial color="#5c3317" />
+        </mesh>
+      </group>
+      
+      <group position={[0.2, 0.35, 0]} rotation={[legSwing, 0, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.25, 0.7, 0.3]} />
+          <meshStandardMaterial color="#f5f5dc" />
+        </mesh>
+        {/* Boot - brown */}
+        <mesh position={[0, -0.4, 0.05]} castShadow>
+          <boxGeometry args={[0.3, 0.2, 0.4]} />
+          <meshStandardMaterial color="#5c3317" />
+        </mesh>
+      </group>
 
       {/* Sword on back - simple gray blade */}
       <mesh position={[-0.35, 1.3, -0.3]} rotation={[0, 0, Math.PI / 6]} castShadow>

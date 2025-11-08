@@ -23,6 +23,8 @@ export function Player() {
   const { isPlaying } = useGameStore()
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
+  const walkCycle = useRef(0)
+  const isMoving = useRef(false)
 
   const movement = useRef({
     forward: false,
@@ -124,9 +126,10 @@ export function Player() {
     if (movement.current.left) direction.x -= 1
     if (movement.current.right) direction.x += 1
 
-    const isMoving = direction.length() > 0
+    const moving = direction.length() > 0
+    isMoving.current = moving
 
-    if (isMoving) {
+    if (moving) {
       direction.normalize()
 
       // Apply camera rotation to movement
@@ -158,6 +161,11 @@ export function Player() {
         },
         true,
       )
+    }
+
+    // Update walk cycle
+    if (isMoving.current && isOnGround.current) {
+      walkCycle.current += 0.016 // Approximate delta time
     }
 
     // Update character rotation
@@ -201,7 +209,7 @@ export function Player() {
     >
       <CapsuleCollider args={[0.5, 0.5]} />
       <group ref={characterRef} position={[0, -0.5, 0]}>
-        <LinkCharacter />
+        <LinkCharacter isWalking={isMoving.current && isOnGround.current} walkCycle={walkCycle.current} />
       </group>
     </RigidBody>
   )
