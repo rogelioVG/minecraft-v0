@@ -11,6 +11,8 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   stone: "bg-[#757575]",
   wood: "bg-[#a1887f]",
   sand: "bg-[#fdd835]",
+  ash: "bg-[#4a4a4a]",
+  skull: "bg-[#f5f5dc]",
 }
 
 const BLOCK_NAMES: Record<BlockType, string> = {
@@ -19,10 +21,27 @@ const BLOCK_NAMES: Record<BlockType, string> = {
   stone: "Stone",
   wood: "Wood",
   sand: "Sand",
+  ash: "Ash",
+  skull: "Skull",
 }
 
 export function UI() {
-  const { selectedBlockType, setSelectedBlockType, isPlaying } = useGameStore()
+  const { selectedBlockType, setSelectedBlockType, isPlaying, playerPosition, explodeBlocks } = useGameStore()
+
+  const handleExplosion = () => {
+    // The explosion will be triggered by the Player component with proper direction
+    // This is just a fallback for button click
+    const explosionDistance = 10
+    const explosionRadius = 4
+    
+    const targetPos: [number, number, number] = [
+      playerPosition[0],
+      playerPosition[1],
+      playerPosition[2] - explosionDistance,
+    ]
+    
+    explodeBlocks(targetPos, explosionRadius)
+  }
 
   if (!isPlaying) return null
 
@@ -60,6 +79,18 @@ export function UI() {
             {BLOCK_NAMES[selectedBlockType]}
           </span>
         </div>
+      </div>
+
+      {/* Explosion button */}
+      <div className="absolute top-8 right-8">
+        <button
+          onClick={handleExplosion}
+          className="px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold rounded-lg shadow-lg border-2 border-red-800 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+          title="Explotar objetos a distancia (E)"
+        >
+          <span className="text-2xl">💣</span>
+          <span>EXPLOTAR</span>
+        </button>
       </div>
 
       {/* Block selection toolbar */}
