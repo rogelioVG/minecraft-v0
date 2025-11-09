@@ -5,6 +5,8 @@ import { Block } from "./block"
 import { Ground } from "./ground"
 import { ExplosionManager } from "./explosion-effect"
 import { DebrisManager } from "./debris"
+import { GhostManager } from "./ghost"
+import { HolyWaterManager } from "./holy-water"
 import { useGameStore } from "@/lib/game-store"
 
 const WORLD_SIZE = 60
@@ -25,6 +27,8 @@ export function World() {
       ))}
       <ExplosionManager />
       <DebrisManager />
+      <GhostManager />
+      <HolyWaterManager />
     </>
   )
 }

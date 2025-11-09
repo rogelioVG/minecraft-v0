@@ -22,9 +22,12 @@ const BLOCK_NAMES: Record<BlockType, string> = {
 }
 
 export function UI() {
-  const { selectedBlockType, setSelectedBlockType, isPlaying, explosionMode, toggleExplosionMode } = useGameStore()
+  const { selectedBlockType, setSelectedBlockType, isPlaying, explosionMode, toggleExplosionMode, ghosts, debris } = useGameStore()
 
   if (!isPlaying) return null
+
+  const skullCount = debris.filter(d => d.type === "skull").length
+  const ghostCount = ghosts.length
 
   return (
     <>
@@ -62,8 +65,39 @@ export function UI() {
         </div>
       </div>
 
-      {/* Explosion mode button */}
-      <div className="absolute top-8 right-8">
+      {/* Top right controls */}
+      <div className="absolute top-8 right-8 flex flex-col gap-3">
+        {/* Ghost counter */}
+        {(ghostCount > 0 || skullCount > 0) && (
+          <div className="bg-black/80 px-6 py-3 rounded-lg border-2 border-green-500 shadow-xl">
+            <div className="flex items-center gap-3">
+              {skullCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">💀</span>
+                  <span className="text-white font-bold text-lg">{skullCount}</span>
+                </div>
+              )}
+              {ghostCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">👻</span>
+                  <span className="text-white font-bold text-lg">{ghostCount}</span>
+                </div>
+              )}
+            </div>
+            {skullCount > 0 && (
+              <div className="mt-1 text-yellow-400 text-xs font-semibold animate-pulse">
+                ⚠️ Se convierten en fantasmas en 3s
+              </div>
+            )}
+            {ghostCount > 0 && (
+              <div className="mt-1 text-blue-400 text-xs font-semibold">
+                💧 Presiona Q para lanzar agua bendita
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Explosion mode button */}
         <button
           onClick={toggleExplosionMode}
           className={cn(
@@ -77,7 +111,7 @@ export function UI() {
           {explosionMode ? "💥 EXPLOSIÓN ACTIVA" : "💣 Activar Explosión"}
         </button>
         {explosionMode && (
-          <div className="mt-2 text-center text-white text-sm bg-black/60 px-3 py-1 rounded">
+          <div className="text-center text-white text-sm bg-black/60 px-3 py-1 rounded">
             Click en un bloque para explotarlo
           </div>
         )}
