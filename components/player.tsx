@@ -33,6 +33,25 @@ export function Player() {
     sprint: false,
   })
 
+  const throwHolyWater = () => {
+    if (!rigidBodyRef.current) return
+    
+    const pos = rigidBodyRef.current.translation()
+    const throwSpeed = 15
+    
+    // Calculate throw direction based on camera rotation
+    const direction = new Vector3(
+      -Math.sin(cameraRotation.current.horizontal),
+      Math.sin(cameraRotation.current.vertical) + 0.3, // Add upward arc
+      -Math.cos(cameraRotation.current.horizontal)
+    ).normalize()
+    
+    useGameStore.getState().throwHolyWater(
+      [pos.x, pos.y + 1.5, pos.z], // Throw from above player
+      [direction.x * throwSpeed, direction.y * throwSpeed, direction.z * throwSpeed]
+    )
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isPlaying) return
@@ -77,6 +96,9 @@ export function Player() {
           break
         case "KeyE":
           useGameStore.getState().toggleExplosionMode()
+          break
+        case "KeyF":
+          throwHolyWater()
           break
       }
     }
@@ -132,6 +154,10 @@ export function Player() {
     const rb = rigidBodyRef.current
     const vel = rb.linvel()
     velocity.current.set(vel.x, vel.y, vel.z)
+    
+    // Update player position in store for ghost tracking
+    const pos = rb.translation()
+    useGameStore.getState().setPlayerPosition([pos.x, pos.y, pos.z])
 
     // Check if on ground
     isOnGround.current = Math.abs(vel.y) < 0.1
