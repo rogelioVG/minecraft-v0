@@ -18,6 +18,11 @@ export function Player() {
   const { camera } = useThree()
   const rigidBodyRef = useRef<any>(null)
   const characterRef = useRef<Group>(null)
+  const leftLegRef = useRef<Group>(null)
+  const rightLegRef = useRef<Group>(null)
+  const leftArmRef = useRef<Group>(null)
+  const rightArmRef = useRef<Group>(null)
+  const bodyRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
   const { isPlaying } = useGameStore()
@@ -167,7 +172,7 @@ export function Player() {
     if (isMoving.current && isOnGround.current) {
       // Make walk cycle speed proportional to movement speed
       const cycleSpeed = speed / MOVE_SPEED // 1.0 for walking, 1.6 for sprinting
-      walkCycle.current += delta * cycleSpeed
+      walkCycle.current += delta * cycleSpeed * 8 // Multiply by 8 for good animation speed
     } else {
       // Reset walk cycle when not moving for smooth start
       walkCycle.current = 0
@@ -176,6 +181,46 @@ export function Player() {
     // Update character rotation
     if (characterRef.current) {
       characterRef.current.rotation.y = characterRotation.current
+    }
+
+    // Animate legs and arms
+    if (isMoving.current && isOnGround.current) {
+      const legSwing = Math.sin(walkCycle.current) * 0.6
+      const armSwing = Math.sin(walkCycle.current) * 0.4
+      const bodyBob = Math.abs(Math.sin(walkCycle.current * 2)) * 0.08
+
+      if (leftLegRef.current) {
+        leftLegRef.current.rotation.x = -legSwing
+      }
+      if (rightLegRef.current) {
+        rightLegRef.current.rotation.x = legSwing
+      }
+      if (leftArmRef.current) {
+        leftArmRef.current.rotation.x = armSwing
+      }
+      if (rightArmRef.current) {
+        rightArmRef.current.rotation.x = -armSwing
+      }
+      if (bodyRef.current) {
+        bodyRef.current.position.y = bodyBob
+      }
+    } else {
+      // Reset animations when not moving
+      if (leftLegRef.current) {
+        leftLegRef.current.rotation.x = 0
+      }
+      if (rightLegRef.current) {
+        rightLegRef.current.rotation.x = 0
+      }
+      if (leftArmRef.current) {
+        leftArmRef.current.rotation.x = 0
+      }
+      if (rightArmRef.current) {
+        rightArmRef.current.rotation.x = 0
+      }
+      if (bodyRef.current) {
+        bodyRef.current.position.y = 0
+      }
     }
 
     // Update camera position for 3rd person view
@@ -214,7 +259,13 @@ export function Player() {
     >
       <CapsuleCollider args={[0.5, 0.5]} />
       <group ref={characterRef} position={[0, -0.5, 0]}>
-        <LinkCharacter isWalking={isMoving.current && isOnGround.current} walkCycle={walkCycle.current} />
+        <LinkCharacter 
+          leftLegRef={leftLegRef}
+          rightLegRef={rightLegRef}
+          leftArmRef={leftArmRef}
+          rightArmRef={rightArmRef}
+          bodyRef={bodyRef}
+        />
       </group>
     </RigidBody>
   )
