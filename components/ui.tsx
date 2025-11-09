@@ -22,7 +22,7 @@ const BLOCK_NAMES: Record<BlockType, string> = {
 }
 
 export function UI() {
-  const { selectedBlockType, setSelectedBlockType, isPlaying } = useGameStore()
+  const { selectedBlockType, setSelectedBlockType, isPlaying, explosionMode, toggleExplosionMode } = useGameStore()
 
   if (!isPlaying) return null
 
@@ -62,6 +62,27 @@ export function UI() {
         </div>
       </div>
 
+      {/* Explosion mode button */}
+      <div className="absolute top-8 right-8">
+        <button
+          onClick={toggleExplosionMode}
+          className={cn(
+            "px-6 py-3 rounded-lg border-4 transition-all hover:scale-105 font-bold text-lg shadow-xl",
+            explosionMode
+              ? "bg-red-600 border-orange-500 text-white animate-pulse"
+              : "bg-gray-700 border-gray-500 text-white hover:bg-gray-600"
+          )}
+          title="Modo Explosión (E)"
+        >
+          {explosionMode ? "💥 EXPLOSIÓN ACTIVA" : "💣 Activar Explosión"}
+        </button>
+        {explosionMode && (
+          <div className="mt-2 text-center text-white text-sm bg-black/60 px-3 py-1 rounded">
+            Click en un bloque para explotarlo
+          </div>
+        )}
+      </div>
+
       {/* Block selection toolbar */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
         {BLOCK_TYPES.map((type, index) => (
@@ -72,8 +93,10 @@ export function UI() {
               "w-16 h-16 rounded-lg border-4 transition-all hover:scale-110 relative",
               BLOCK_COLORS[type],
               selectedBlockType === type ? "border-white shadow-lg scale-110" : "border-black/30",
+              explosionMode && "opacity-50 cursor-not-allowed"
             )}
             title={`${BLOCK_NAMES[type]} (${index + 1})`}
+            disabled={explosionMode}
           >
             {selectedBlockType === type && (
               <div className="absolute inset-0 bg-white/30 rounded-md pointer-events-none" />

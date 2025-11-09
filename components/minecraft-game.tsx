@@ -48,7 +48,8 @@ export function MinecraftGame() {
               <p>WASD - Move | Space - Jump | Shift - Sprint</p>
               <p>Mouse - Rotate Camera | X - Toggle View</p>
               <p>Left Click - Break Block | Right Click - Place Block</p>
-              <p>1-5 - Select Block Type | ESC - Pause</p>
+              <p>E - Modo Explosión 💥 | 1-5 - Select Block Type</p>
+              <p>ESC - Pause</p>
             </div>
           </div>
         </div>

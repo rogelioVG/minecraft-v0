@@ -8,17 +8,35 @@ interface Block {
   type: BlockType
 }
 
+interface Explosion {
+  id: string
+  position: [number, number, number]
+  timestamp: number
+}
+
+interface Debris {
+  id: string
+  position: [number, number, number]
+  type: "ash" | "skull"
+}
+
 interface GameState {
   blocks: Block[]
   selectedBlockType: BlockType
   isPlaying: boolean
   isFirstPerson: boolean
+  explosionMode: boolean
+  explosions: Explosion[]
+  debris: Debris[]
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
   initializeWorld: (size: number, height: number) => void
   setIsPlaying: (playing: boolean) => void
   toggleViewMode: () => void
+  toggleExplosionMode: () => void
+  explodeBlock: (id: string, position: [number, number, number]) => void
+  removeExplosion: (id: string) => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -26,12 +44,54 @@ export const useGameStore = create<GameState>((set) => ({
   selectedBlockType: "grass",
   isPlaying: false,
   isFirstPerson: false,
+  explosionMode: false,
+  explosions: [],
+  debris: [],
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
   setIsPlaying: (playing) => set({ isPlaying: playing }),
 
   toggleViewMode: () => set((state) => ({ isFirstPerson: !state.isFirstPerson })),
+
+  toggleExplosionMode: () => set((state) => ({ explosionMode: !state.explosionMode })),
+
+  explodeBlock: (id, position) =>
+    set((state) => {
+      const explosionId = `explosion-${Date.now()}-${Math.random()}`
+      const ashId = `ash-${Date.now()}-${Math.random()}`
+      const skullId = `skull-${Date.now()}-${Math.random()}`
+      
+      return {
+        blocks: state.blocks.filter((block) => block.id !== id),
+        explosions: [
+          ...state.explosions,
+          {
+            id: explosionId,
+            position,
+            timestamp: Date.now(),
+          },
+        ],
+        debris: [
+          ...state.debris,
+          {
+            id: ashId,
+            position: [position[0], position[1], position[2]],
+            type: "ash",
+          },
+          {
+            id: skullId,
+            position: [position[0], position[1] + 0.3, position[2]],
+            type: "skull",
+          },
+        ],
+      }
+    }),
+
+  removeExplosion: (id) =>
+    set((state) => ({
+      explosions: state.explosions.filter((explosion) => explosion.id !== id),
+    })),
 
   addBlock: (position, type) =>
     set((state) => ({

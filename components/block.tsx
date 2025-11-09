@@ -30,25 +30,34 @@ const BLOCK_TEXTURES: Record<BlockType, { top?: string; side: string; bottom?: s
 export function Block({ id, position, type }: BlockProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const [hovered, setHovered] = useState(false)
-  const { removeBlock, addBlock, selectedBlockType, isPlaying } = useGameStore()
+  const { removeBlock, addBlock, selectedBlockType, isPlaying, explosionMode, explodeBlock } = useGameStore()
 
   const handleClick = (e: any) => {
     if (!isPlaying) return
     e.stopPropagation()
 
     if (e.button === 0) {
-      // Left click - remove block
-      removeBlock(id)
+      // Left click - remove block or explode if in explosion mode
+      if (explosionMode) {
+        explodeBlock(id, position)
+      } else {
+        removeBlock(id)
+      }
     } else if (e.button === 2) {
-      // Right click - place block
-      const face = e.face
-      const normal = face.normal
-      const newPos: [number, number, number] = [position[0] + normal.x, position[1] + normal.y, position[2] + normal.z]
-      addBlock(newPos, selectedBlockType)
+      // Right click - place block (only if not in explosion mode)
+      if (!explosionMode) {
+        const face = e.face
+        const normal = face.normal
+        const newPos: [number, number, number] = [position[0] + normal.x, position[1] + normal.y, position[2] + normal.z]
+        addBlock(newPos, selectedBlockType)
+      }
     }
   }
 
   const texture = BLOCK_TEXTURES[type]
+  
+  // Glow effect when in explosion mode and hovered
+  const glowColor = explosionMode && hovered ? "#ff4400" : undefined
 
   return (
     <RigidBody type="fixed" colliders="cuboid" position={position}>
@@ -64,15 +73,49 @@ export function Block({ id, position, type }: BlockProps) {
         <boxGeometry args={[1, 1, 1]} />
         {texture.top ? (
           <>
-            <meshStandardMaterial attach="material-0" color={texture.side} />
-            <meshStandardMaterial attach="material-1" color={texture.side} />
-            <meshStandardMaterial attach="material-2" color={texture.top} />
-            <meshStandardMaterial attach="material-3" color={texture.bottom || texture.side} />
-            <meshStandardMaterial attach="material-4" color={texture.side} />
-            <meshStandardMaterial attach="material-5" color={texture.side} />
+            <meshStandardMaterial 
+              attach="material-0" 
+              color={texture.side}
+              emissive={glowColor}
+              emissiveIntensity={glowColor ? 0.5 : 0}
+            />
+            <meshStandardMaterial 
+              attach="material-1" 
+              color={texture.side}
+              emissive={glowColor}
+              emissiveIntensity={glowColor ? 0.5 : 0}
+            />
+            <meshStandardMaterial 
+              attach="material-2" 
+              color={texture.top}
+              emissive={glowColor}
+              emissiveIntensity={glowColor ? 0.5 : 0}
+            />
+            <meshStandardMaterial 
+              attach="material-3" 
+              color={texture.bottom || texture.side}
+              emissive={glowColor}
+              emissiveIntensity={glowColor ? 0.5 : 0}
+            />
+            <meshStandardMaterial 
+              attach="material-4" 
+              color={texture.side}
+              emissive={glowColor}
+              emissiveIntensity={glowColor ? 0.5 : 0}
+            />
+            <meshStandardMaterial 
+              attach="material-5" 
+              color={texture.side}
+              emissive={glowColor}
+              emissiveIntensity={glowColor ? 0.5 : 0}
+            />
           </>
         ) : (
-          <meshStandardMaterial color={hovered ? "#ffffff" : texture.side} />
+          <meshStandardMaterial 
+            color={hovered ? "#ffffff" : texture.side}
+            emissive={glowColor}
+            emissiveIntensity={glowColor ? 0.5 : 0}
+          />
         )}
       </mesh>
     </RigidBody>
