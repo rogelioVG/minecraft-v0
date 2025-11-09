@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { Block } from "./block"
 import { Ground } from "./ground"
 import { Arrow } from "./arrow"
+import { DekuTree } from "./deku-tree"
 import { useGameStore } from "@/lib/game-store"
 
 const WORLD_SIZE = 20
@@ -19,6 +20,7 @@ export function World() {
   return (
     <>
       <Ground size={WORLD_SIZE} />
+      <DekuTree />
       {blocks.map((block) => (
         <Block key={block.id} id={block.id} position={block.position} type={block.type} />
       ))}

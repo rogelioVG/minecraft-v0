@@ -10,9 +10,7 @@ import { LinkCharacter } from "./link-character"
 const MOVE_SPEED = 5
 const SPRINT_SPEED = 8
 const JUMP_FORCE = 8
-const CAMERA_DISTANCE = 5
-const CAMERA_HEIGHT = 2
-const CAMERA_MIN_HEIGHT = 1.5
+const CAMERA_HEIGHT_OFFSET = 0.5 // Height above player capsule center for first-person view
 
 export function Player() {
   const { camera, size } = useThree()
@@ -258,28 +256,20 @@ export function Player() {
       }
     }
 
-    // Update camera position for 3rd person view
+    // Update camera position for first-person view
     const pos = rb.translation()
-    const cameraOffset = new Vector3(
-      Math.sin(cameraRotation.current.horizontal) * CAMERA_DISTANCE,
-      CAMERA_HEIGHT + Math.sin(cameraRotation.current.vertical) * CAMERA_DISTANCE,
-      Math.cos(cameraRotation.current.horizontal) * CAMERA_DISTANCE
-    )
-
-    // Calculate desired camera position
-    let cameraY = pos.y + cameraOffset.y
-
-    // Prevent camera from going below minimum height (floor collision)
-    cameraY = Math.max(cameraY, CAMERA_MIN_HEIGHT)
-
+    
+    // Position camera at player's head height
     camera.position.set(
-      pos.x + cameraOffset.x,
-      cameraY,
-      pos.z + cameraOffset.z
+      pos.x,
+      pos.y + CAMERA_HEIGHT_OFFSET,
+      pos.z
     )
 
-    // Look at character
-    camera.lookAt(pos.x, pos.y + 1, pos.z)
+    // Set camera rotation based on mouse movement
+    camera.rotation.order = 'YXZ'
+    camera.rotation.y = cameraRotation.current.horizontal
+    camera.rotation.x = cameraRotation.current.vertical
   })
 
   return (
@@ -293,7 +283,8 @@ export function Player() {
       linearDamping={0.5}
     >
       <CapsuleCollider args={[0.5, 0.5]} />
-      <group ref={characterRef} position={[0, -0.5, 0]}>
+      {/* Hide character in first-person mode */}
+      <group ref={characterRef} position={[0, -0.5, 0]} visible={false}>
         <LinkCharacter 
           leftLegRef={leftLegRef}
           rightLegRef={rightLegRef}
