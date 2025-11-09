@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import { RigidBody, CapsuleCollider } from "@react-three/rapier"
-import { Vector3, Euler, Group } from "three"
+import { Vector3, Euler, Group, Raycaster, Vector2 } from "three"
 import { useGameStore } from "@/lib/game-store"
 import { LinkCharacter } from "./link-character"
 
@@ -15,7 +15,7 @@ const CAMERA_HEIGHT = 2
 const CAMERA_MIN_HEIGHT = 1.5
 
 export function Player() {
-  const { camera } = useThree()
+  const { camera, size } = useThree()
   const rigidBodyRef = useRef<any>(null)
   const characterRef = useRef<Group>(null)
   const leftLegRef = useRef<Group>(null)
@@ -30,6 +30,7 @@ export function Player() {
   const characterRotation = useRef(0)
   const walkCycle = useRef(0)
   const isMoving = useRef(false)
+  const mousePosition = useRef(new Vector2(0, 0))
 
   const movement = useRef({
     forward: false,
@@ -99,6 +100,10 @@ export function Player() {
 
       // Clamp vertical rotation
       cameraRotation.current.vertical = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotation.current.vertical))
+
+      // Track mouse position in normalized device coordinates (-1 to +1)
+      mousePosition.current.x = (e.clientX / window.innerWidth) * 2 - 1
+      mousePosition.current.y = -(e.clientY / window.innerHeight) * 2 + 1
     }
 
     const handleClick = (e: MouseEvent) => {
@@ -107,22 +112,21 @@ export function Player() {
       // Get player position
       const pos = rigidBodyRef.current.translation()
       
-      // Calculate arrow spawn position (in front of player)
+      // Create a raycaster from the camera through the cursor position
+      const raycaster = new Raycaster()
+      raycaster.setFromCamera(mousePosition.current, camera)
+      
+      // Get the direction vector from the raycaster
+      const direction = raycaster.ray.direction.clone().normalize()
+
+      // Calculate arrow spawn position (in front of player, towards the cursor)
       const spawnDistance = 1.5
       const spawnHeight = 1.5 // Height at which arrow spawns
       const arrowPosition: [number, number, number] = [
-        pos.x - Math.sin(cameraRotation.current.horizontal) * spawnDistance,
+        pos.x + direction.x * spawnDistance,
         pos.y + spawnHeight,
-        pos.z - Math.cos(cameraRotation.current.horizontal) * spawnDistance
+        pos.z + direction.z * spawnDistance
       ]
-
-      // Calculate direction based on camera rotation
-      const direction = new Vector3(
-        -Math.sin(cameraRotation.current.horizontal),
-        Math.tan(cameraRotation.current.vertical),
-        -Math.cos(cameraRotation.current.horizontal)
-      )
-      direction.normalize()
 
       const arrowDirection: [number, number, number] = [direction.x, direction.y, direction.z]
 
