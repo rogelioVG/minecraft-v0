@@ -30,16 +30,36 @@ export function Ground({ size }: GroundProps) {
     }
   }
 
+  // Zona de juegos en la esquina suroeste
+  const playgroundSize = 20
+  const playgroundX = -size + playgroundSize / 2
+  const playgroundZ = -size + playgroundSize / 2
+
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.5, 0]}>
-      <mesh 
-        receiveShadow
-        onClick={handleClick}
-        onContextMenu={handleClick}
-      >
-        <boxGeometry args={[size * 2, 1, size * 2]} />
-        <meshStandardMaterial color="#6a9b3d" />
-      </mesh>
-    </RigidBody>
+    <>
+      {/* Suelo principal verde */}
+      <RigidBody type="fixed" colliders="cuboid" position={[0, -0.5, 0]}>
+        <mesh 
+          receiveShadow
+          onClick={handleClick}
+          onContextMenu={handleClick}
+        >
+          <boxGeometry args={[size * 2, 1, size * 2]} />
+          <meshStandardMaterial color="#6a9b3d" />
+        </mesh>
+      </RigidBody>
+
+      {/* Zona de juegos con suelo arena en la esquina suroeste */}
+      <RigidBody type="fixed" colliders="cuboid" position={[playgroundX, -0.4, playgroundZ]}>
+        <mesh 
+          receiveShadow
+          onClick={handleClick}
+          onContextMenu={handleClick}
+        >
+          <boxGeometry args={[playgroundSize, 1.2, playgroundSize]} />
+          <meshStandardMaterial color="#c2b280" />
+        </mesh>
+      </RigidBody>
+    </>
   )
 }
