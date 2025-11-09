@@ -75,6 +75,23 @@ export function Player() {
         case "KeyX":
           useGameStore.getState().toggleViewMode()
           break
+        case "KeyE":
+          // Trigger explosion at distance
+          const pos = rigidBodyRef.current?.translation()
+          if (pos) {
+            const explosionDistance = 10
+            const explosionRadius = 4
+            
+            // Calculate direction player is facing based on camera rotation
+            const targetPos: [number, number, number] = [
+              pos.x - Math.sin(cameraRotation.current.horizontal) * explosionDistance,
+              pos.y,
+              pos.z - Math.cos(cameraRotation.current.horizontal) * explosionDistance,
+            ]
+            
+            useGameStore.getState().explodeBlocks(targetPos, explosionRadius)
+          }
+          break
       }
     }
 
@@ -129,6 +146,10 @@ export function Player() {
     const rb = rigidBodyRef.current
     const vel = rb.linvel()
     velocity.current.set(vel.x, vel.y, vel.z)
+
+    // Update player position in store
+    const pos = rb.translation()
+    useGameStore.getState().setPlayerPosition([pos.x, pos.y, pos.z])
 
     // Check if on ground
     isOnGround.current = Math.abs(vel.y) < 0.1

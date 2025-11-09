@@ -17,6 +17,8 @@ const BLOCK_COLORS: Record<BlockType, string> = {
   stone: "#757575",
   wood: "#a1887f",
   sand: "#fdd835",
+  ash: "#4a4a4a",
+  skull: "#f5f5dc",
 }
 
 const BLOCK_TEXTURES: Record<BlockType, { top?: string; side: string; bottom?: string }> = {
@@ -25,6 +27,8 @@ const BLOCK_TEXTURES: Record<BlockType, { top?: string; side: string; bottom?: s
   stone: { side: "#757575" },
   wood: { side: "#a1887f" },
   sand: { side: "#fdd835" },
+  ash: { side: "#4a4a4a" },
+  skull: { side: "#f5f5dc" },
 }
 
 export function Block({ id, position, type }: BlockProps) {
@@ -49,6 +53,45 @@ export function Block({ id, position, type }: BlockProps) {
   }
 
   const texture = BLOCK_TEXTURES[type]
+
+  // Special rendering for skull blocks
+  if (type === "skull") {
+    return (
+      <RigidBody type="fixed" colliders="cuboid" position={position}>
+        <group>
+          {/* Base block */}
+          <mesh
+            ref={meshRef}
+            castShadow
+            receiveShadow
+            onClick={handleClick}
+            onContextMenu={handleClick}
+            onPointerEnter={() => setHovered(true)}
+            onPointerLeave={() => setHovered(false)}
+          >
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color={hovered ? "#ffffff" : texture.side} />
+          </mesh>
+          
+          {/* Skull decoration on top */}
+          <mesh position={[0, 0.35, 0]} scale={[0.5, 0.5, 0.5]}>
+            <sphereGeometry args={[0.5, 16, 16]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.8} />
+          </mesh>
+          
+          {/* Eye sockets */}
+          <mesh position={[-0.12, 0.35, 0.2]} scale={[0.08, 0.1, 0.08]}>
+            <sphereGeometry args={[0.5, 8, 8]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+          <mesh position={[0.12, 0.35, 0.2]} scale={[0.08, 0.1, 0.08]}>
+            <sphereGeometry args={[0.5, 8, 8]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+        </group>
+      </RigidBody>
+    )
+  }
 
   return (
     <RigidBody type="fixed" colliders="cuboid" position={position}>

@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-export type BlockType = "grass" | "dirt" | "stone" | "wood" | "sand"
+export type BlockType = "grass" | "dirt" | "stone" | "wood" | "sand" | "ash" | "skull"
 
 interface Block {
   id: string
@@ -8,24 +8,38 @@ interface Block {
   type: BlockType
 }
 
+interface Explosion {
+  id: string
+  position: [number, number, number]
+  startTime: number
+}
+
 interface GameState {
   blocks: Block[]
   selectedBlockType: BlockType
   isPlaying: boolean
   isFirstPerson: boolean
+  explosions: Explosion[]
+  playerPosition: [number, number, number]
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
   initializeWorld: (size: number, height: number) => void
   setIsPlaying: (playing: boolean) => void
   toggleViewMode: () => void
+  explodeBlocks: (centerPos: [number, number, number], radius: number) => void
+  addExplosion: (position: [number, number, number]) => void
+  removeExplosion: (id: string) => void
+  setPlayerPosition: (position: [number, number, number]) => void
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useGameStore = create<GameState>((set, get) => ({
   blocks: [],
   selectedBlockType: "grass",
   isPlaying: false,
   isFirstPerson: false,
+  explosions: [],
+  playerPosition: [0, 10, 0],
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
@@ -49,6 +63,70 @@ export const useGameStore = create<GameState>((set) => ({
     set((state) => ({
       blocks: state.blocks.filter((block) => block.id !== id),
     })),
+
+  setPlayerPosition: (position) => set({ playerPosition: position }),
+
+  addExplosion: (position) =>
+    set((state) => ({
+      explosions: [
+        ...state.explosions,
+        {
+          id: `explosion-${Date.now()}-${Math.random()}`,
+          position,
+          startTime: Date.now(),
+        },
+      ],
+    })),
+
+  removeExplosion: (id) =>
+    set((state) => ({
+      explosions: state.explosions.filter((explosion) => explosion.id !== id),
+    })),
+
+  explodeBlocks: (centerPos, radius) => {
+    const state = get()
+    const blocksToExplode: string[] = []
+    const explosionPositions: [number, number, number][] = []
+
+    // Find blocks within radius
+    state.blocks.forEach((block) => {
+      const dx = block.position[0] - centerPos[0]
+      const dy = block.position[1] - centerPos[1]
+      const dz = block.position[2] - centerPos[2]
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+
+      if (distance <= radius && block.type !== "ash" && block.type !== "skull") {
+        blocksToExplode.push(block.id)
+        explosionPositions.push(block.position)
+      }
+    })
+
+    // Create explosions at each block position
+    explosionPositions.forEach((pos) => {
+      get().addExplosion(pos)
+    })
+
+    // Replace blocks with ash and skulls after a short delay
+    setTimeout(() => {
+      set((state) => {
+        const newBlocks = state.blocks.filter(
+          (block) => !blocksToExplode.includes(block.id)
+        )
+
+        // Add ash and occasional skulls
+        explosionPositions.forEach((pos) => {
+          const isSkull = Math.random() < 0.3 // 30% chance of skull
+          newBlocks.push({
+            id: `${pos[0]}-${pos[1]}-${pos[2]}`,
+            position: pos,
+            type: isSkull ? "skull" : "ash",
+          })
+        })
+
+        return { blocks: newBlocks }
+      })
+    }, 500)
+  },
 
   initializeWorld: (size, height) => {
     const blocks: Block[] = []
