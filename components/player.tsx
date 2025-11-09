@@ -143,7 +143,7 @@ export function Player() {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("click", handleClick)
     }
-  }, [isPlaying, shootArrow])
+  }, [isPlaying, throwBomb, camera])
 
   useFrame((state, delta) => {
     if (!rigidBodyRef.current || !isPlaying) return
