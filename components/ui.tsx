@@ -22,12 +22,13 @@ const BLOCK_NAMES: Record<BlockType, string> = {
 }
 
 export function UI() {
-  const { selectedBlockType, setSelectedBlockType, isPlaying, explosionMode, toggleExplosionMode, ghosts, debris } = useGameStore()
+  const { selectedBlockType, setSelectedBlockType, isPlaying, explosionMode, toggleExplosionMode, ghosts, debris, health, maxHealth } = useGameStore()
 
   if (!isPlaying) return null
 
   const skullCount = debris.filter(d => d.type === "skull").length
   const ghostCount = ghosts.length
+  const healthPercentage = (health / maxHealth) * 100
 
   return (
     <>
@@ -62,6 +63,43 @@ export function UI() {
           <span className="text-white text-xs font-semibold px-2 py-0.5 bg-black/60 rounded shadow-lg">
             {BLOCK_NAMES[selectedBlockType]}
           </span>
+        </div>
+      </div>
+
+      {/* Health Bar - Top Left */}
+      <div className="absolute top-8 left-8 flex flex-col gap-2">
+        <div className="bg-black/80 px-6 py-3 rounded-lg border-2 border-red-500 shadow-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">❤️</span>
+            <span className="text-white font-bold text-lg">
+              {health} / {maxHealth}
+            </span>
+          </div>
+          
+          {/* Health bar */}
+          <div className="w-48 h-6 bg-gray-700 rounded-full border-2 border-gray-600 overflow-hidden">
+            <div 
+              className={cn(
+                "h-full transition-all duration-300 rounded-full",
+                healthPercentage > 60 ? "bg-green-500" : 
+                healthPercentage > 30 ? "bg-yellow-500" : 
+                "bg-red-500 animate-pulse"
+              )}
+              style={{ width: `${healthPercentage}%` }}
+            />
+          </div>
+          
+          {health <= 30 && health > 0 && (
+            <div className="mt-2 text-red-400 text-xs font-semibold animate-pulse">
+              ⚠️ Salud crítica!
+            </div>
+          )}
+          
+          {health === 0 && (
+            <div className="mt-2 text-red-500 text-sm font-bold animate-pulse">
+              💀 Sin vida!
+            </div>
+          )}
         </div>
       </div>
 
