@@ -18,6 +18,20 @@ interface Debris {
   id: string
   position: [number, number, number]
   type: "ash" | "skull"
+  timestamp: number
+}
+
+interface Ghost {
+  id: string
+  position: [number, number, number]
+  velocity: [number, number, number]
+}
+
+interface HolyWater {
+  id: string
+  position: [number, number, number]
+  velocity: [number, number, number]
+  timestamp: number
 }
 
 interface GameState {
@@ -28,6 +42,9 @@ interface GameState {
   explosionMode: boolean
   explosions: Explosion[]
   debris: Debris[]
+  ghosts: Ghost[]
+  holyWaters: HolyWater[]
+  playerPosition: [number, number, number]
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
@@ -37,6 +54,12 @@ interface GameState {
   toggleExplosionMode: () => void
   explodeBlock: (id: string, position: [number, number, number]) => void
   removeExplosion: (id: string) => void
+  transformSkullToGhost: (skullId: string, position: [number, number, number]) => void
+  updateGhostPosition: (id: string, position: [number, number, number], velocity: [number, number, number]) => void
+  throwHolyWater: (position: [number, number, number], velocity: [number, number, number]) => void
+  removeHolyWater: (id: string) => void
+  removeGhost: (id: string) => void
+  setPlayerPosition: (position: [number, number, number]) => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -47,6 +70,9 @@ export const useGameStore = create<GameState>((set) => ({
   explosionMode: false,
   explosions: [],
   debris: [],
+  ghosts: [],
+  holyWaters: [],
+  playerPosition: [0, 10, 0],
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
@@ -78,11 +104,13 @@ export const useGameStore = create<GameState>((set) => ({
             id: ashId,
             position: [position[0], position[1], position[2]],
             type: "ash",
+            timestamp: Date.now(),
           },
           {
             id: skullId,
             position: [position[0], position[1] + 0.3, position[2]],
             type: "skull",
+            timestamp: Date.now(),
           },
         ],
       }
@@ -92,6 +120,57 @@ export const useGameStore = create<GameState>((set) => ({
     set((state) => ({
       explosions: state.explosions.filter((explosion) => explosion.id !== id),
     })),
+
+  transformSkullToGhost: (skullId, position) =>
+    set((state) => {
+      const ghostId = `ghost-${Date.now()}-${Math.random()}`
+      return {
+        debris: state.debris.filter((item) => item.id !== skullId),
+        ghosts: [
+          ...state.ghosts,
+          {
+            id: ghostId,
+            position,
+            velocity: [0, 0, 0],
+          },
+        ],
+      }
+    }),
+
+  updateGhostPosition: (id, position, velocity) =>
+    set((state) => ({
+      ghosts: state.ghosts.map((ghost) =>
+        ghost.id === id ? { ...ghost, position, velocity } : ghost
+      ),
+    })),
+
+  throwHolyWater: (position, velocity) =>
+    set((state) => {
+      const holyWaterId = `holywater-${Date.now()}-${Math.random()}`
+      return {
+        holyWaters: [
+          ...state.holyWaters,
+          {
+            id: holyWaterId,
+            position,
+            velocity,
+            timestamp: Date.now(),
+          },
+        ],
+      }
+    }),
+
+  removeHolyWater: (id) =>
+    set((state) => ({
+      holyWaters: state.holyWaters.filter((hw) => hw.id !== id),
+    })),
+
+  removeGhost: (id) =>
+    set((state) => ({
+      ghosts: state.ghosts.filter((ghost) => ghost.id !== id),
+    })),
+
+  setPlayerPosition: (position) => set({ playerPosition: position }),
 
   addBlock: (position, type) =>
     set((state) => ({

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 import * as THREE from "three"
 import { useGameStore } from "@/lib/game-store"
 
@@ -8,10 +8,25 @@ interface DebrisProps {
   id: string
   position: [number, number, number]
   type: "ash" | "skull"
+  timestamp: number
 }
 
-export function Debris({ id, position, type }: DebrisProps) {
+const SKULL_TRANSFORM_TIME = 3000 // 3 seconds
+
+export function Debris({ id, position, type, timestamp }: DebrisProps) {
   const meshRef = useRef<THREE.Mesh>(null)
+  const { transformSkullToGhost } = useGameStore()
+
+  useEffect(() => {
+    // Transform skull to ghost after 3 seconds
+    if (type === "skull") {
+      const timer = setTimeout(() => {
+        transformSkullToGhost(id, position)
+      }, SKULL_TRANSFORM_TIME)
+
+      return () => clearTimeout(timer)
+    }
+  }, [id, position, type, transformSkullToGhost])
 
   if (type === "ash") {
     return (
@@ -80,6 +95,7 @@ export function DebrisManager() {
           id={item.id}
           position={item.position}
           type={item.type}
+          timestamp={item.timestamp}
         />
       ))}
     </>
