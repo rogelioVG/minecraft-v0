@@ -18,6 +18,21 @@ interface Debris {
   id: string
   position: [number, number, number]
   type: "ash" | "skull"
+  timestamp: number
+}
+
+interface Ghost {
+  id: string
+  position: [number, number, number]
+  velocity: [number, number, number]
+  timestamp: number
+}
+
+interface HolyWater {
+  id: string
+  position: [number, number, number]
+  velocity: [number, number, number]
+  timestamp: number
 }
 
 interface GameState {
@@ -28,6 +43,9 @@ interface GameState {
   explosionMode: boolean
   explosions: Explosion[]
   debris: Debris[]
+  ghosts: Ghost[]
+  holyWater: HolyWater[]
+  playerPosition: [number, number, number]
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
@@ -37,9 +55,16 @@ interface GameState {
   toggleExplosionMode: () => void
   explodeBlock: (id: string, position: [number, number, number]) => void
   removeExplosion: (id: string) => void
+  convertSkullsToGhosts: () => void
+  updateGhosts: (delta: number) => void
+  throwHolyWater: (position: [number, number, number], direction: [number, number, number]) => void
+  updateHolyWater: (delta: number) => void
+  setPlayerPosition: (position: [number, number, number]) => void
+  removeDebris: (id: string) => void
+  removeGhost: (id: string) => void
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useGameStore = create<GameState>((set, get) => ({
   blocks: [],
   selectedBlockType: "grass",
   isPlaying: false,
@@ -47,6 +72,9 @@ export const useGameStore = create<GameState>((set) => ({
   explosionMode: false,
   explosions: [],
   debris: [],
+  ghosts: [],
+  holyWater: [],
+  playerPosition: [0, 10, 0],
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
@@ -61,6 +89,7 @@ export const useGameStore = create<GameState>((set) => ({
       const explosionId = `explosion-${Date.now()}-${Math.random()}`
       const ashId = `ash-${Date.now()}-${Math.random()}`
       const skullId = `skull-${Date.now()}-${Math.random()}`
+      const now = Date.now()
       
       return {
         blocks: state.blocks.filter((block) => block.id !== id),
@@ -69,7 +98,7 @@ export const useGameStore = create<GameState>((set) => ({
           {
             id: explosionId,
             position,
-            timestamp: Date.now(),
+            timestamp: now,
           },
         ],
         debris: [
@@ -78,11 +107,13 @@ export const useGameStore = create<GameState>((set) => ({
             id: ashId,
             position: [position[0], position[1], position[2]],
             type: "ash",
+            timestamp: now,
           },
           {
             id: skullId,
             position: [position[0], position[1] + 0.3, position[2]],
             type: "skull",
+            timestamp: now,
           },
         ],
       }
@@ -222,4 +253,158 @@ export const useGameStore = create<GameState>((set) => ({
 
     set({ blocks })
   },
+
+  setPlayerPosition: (position) => set({ playerPosition: position }),
+
+  removeDebris: (id) =>
+    set((state) => ({
+      debris: state.debris.filter((d) => d.id !== id),
+    })),
+
+  removeGhost: (id) =>
+    set((state) => ({
+      ghosts: state.ghosts.filter((g) => g.id !== id),
+    })),
+
+  convertSkullsToGhosts: () =>
+    set((state) => {
+      const now = Date.now()
+      const newGhosts: Ghost[] = []
+      const remainingDebris = state.debris.filter((debris) => {
+        if (debris.type === "skull" && now - debris.timestamp >= 3000) {
+          // Convert skull to ghost
+          newGhosts.push({
+            id: `ghost-${debris.id}`,
+            position: debris.position,
+            velocity: [0, 0, 0],
+            timestamp: now,
+          })
+          return false
+        }
+        return true
+      })
+
+      return {
+        debris: remainingDebris,
+        ghosts: [...state.ghosts, ...newGhosts],
+      }
+    }),
+
+  updateGhosts: (delta) =>
+    set((state) => {
+      const playerPos = state.playerPosition
+      const GHOST_SPEED = 3
+
+      const updatedGhosts = state.ghosts.map((ghost) => {
+        // Calculate direction to player
+        const dx = playerPos[0] - ghost.position[0]
+        const dy = playerPos[1] - ghost.position[1]
+        const dz = playerPos[2] - ghost.position[2]
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+
+        if (distance > 0.5) {
+          // Normalize and apply speed
+          const nx = (dx / distance) * GHOST_SPEED
+          const ny = (dy / distance) * GHOST_SPEED
+          const nz = (dz / distance) * GHOST_SPEED
+
+          return {
+            ...ghost,
+            position: [
+              ghost.position[0] + nx * delta,
+              ghost.position[1] + ny * delta,
+              ghost.position[2] + nz * delta,
+            ] as [number, number, number],
+            velocity: [nx, ny, nz] as [number, number, number],
+          }
+        }
+        return ghost
+      })
+
+      return { ghosts: updatedGhosts }
+    }),
+
+  throwHolyWater: (position, direction) =>
+    set((state) => {
+      const id = `holywater-${Date.now()}-${Math.random()}`
+      const THROW_SPEED = 15
+
+      return {
+        holyWater: [
+          ...state.holyWater,
+          {
+            id,
+            position,
+            velocity: [
+              direction[0] * THROW_SPEED,
+              direction[1] * THROW_SPEED,
+              direction[2] * THROW_SPEED,
+            ] as [number, number, number],
+            timestamp: Date.now(),
+          },
+        ],
+      }
+    }),
+
+  updateHolyWater: (delta) =>
+    set((state) => {
+      const now = Date.now()
+      const GRAVITY = 9.8
+      const MAX_AGE = 5000 // Remove after 5 seconds
+
+      // Update holy water positions and check collisions
+      const remainingHolyWater: HolyWater[] = []
+      const remainingGhosts: Ghost[] = [...state.ghosts]
+
+      state.holyWater.forEach((water) => {
+        // Remove old projectiles
+        if (now - water.timestamp > MAX_AGE) {
+          return
+        }
+
+        // Apply gravity
+        const newVelocity: [number, number, number] = [
+          water.velocity[0],
+          water.velocity[1] - GRAVITY * delta,
+          water.velocity[2],
+        ]
+
+        const newPosition: [number, number, number] = [
+          water.position[0] + newVelocity[0] * delta,
+          water.position[1] + newVelocity[1] * delta,
+          water.position[2] + newVelocity[2] * delta,
+        ]
+
+        // Check collision with ghosts
+        let hitGhost = false
+        for (let i = remainingGhosts.length - 1; i >= 0; i--) {
+          const ghost = remainingGhosts[i]
+          const dx = newPosition[0] - ghost.position[0]
+          const dy = newPosition[1] - ghost.position[1]
+          const dz = newPosition[2] - ghost.position[2]
+          const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+
+          if (distance < 0.5) {
+            // Hit!
+            remainingGhosts.splice(i, 1)
+            hitGhost = true
+            break
+          }
+        }
+
+        // Remove water that hit ground or ghost
+        if (!hitGhost && newPosition[1] > -5) {
+          remainingHolyWater.push({
+            ...water,
+            position: newPosition,
+            velocity: newVelocity,
+          })
+        }
+      })
+
+      return {
+        holyWater: remainingHolyWater,
+        ghosts: remainingGhosts,
+      }
+    }),
 }))

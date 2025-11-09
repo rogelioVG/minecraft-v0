@@ -48,8 +48,9 @@ export function MinecraftGame() {
               <p>WASD - Move | Space - Jump | Shift - Sprint</p>
               <p>Mouse - Rotate Camera | X - Toggle View</p>
               <p>Left Click - Break Block | Right Click - Place Block</p>
-              <p>E - Modo Explosión 💥 | 1-5 - Select Block Type</p>
-              <p>ESC - Pause</p>
+              <p>E - Modo Explosión 💥 | Q - Lanzar Agua Bendita 💧</p>
+              <p>1-5 - Select Block Type | ESC - Pause</p>
+              <p className="text-yellow-400 font-semibold mt-3">⚠️ Los cráneos se vuelven fantasmas después de 3 segundos!</p>
             </div>
           </div>
         </div>

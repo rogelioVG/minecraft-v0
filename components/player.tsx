@@ -33,6 +33,9 @@ export function Player() {
     sprint: false,
   })
 
+  const lastThrowTime = useRef(0)
+  const THROW_COOLDOWN = 500 // 500ms between throws
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isPlaying) return
@@ -77,6 +80,26 @@ export function Player() {
           break
         case "KeyE":
           useGameStore.getState().toggleExplosionMode()
+          break
+        case "KeyQ":
+          // Throw holy water
+          if (Date.now() - lastThrowTime.current > THROW_COOLDOWN) {
+            const rb = rigidBodyRef.current
+            if (rb) {
+              const pos = rb.translation()
+              const position: [number, number, number] = [pos.x, pos.y + 1.6, pos.z]
+              
+              // Calculate throw direction based on camera rotation
+              const direction: [number, number, number] = [
+                -Math.sin(cameraRotation.current.horizontal),
+                -Math.sin(cameraRotation.current.vertical),
+                -Math.cos(cameraRotation.current.horizontal),
+              ]
+              
+              useGameStore.getState().throwHolyWater(position, direction)
+              lastThrowTime.current = Date.now()
+            }
+          }
           break
       }
     }
@@ -186,8 +209,11 @@ export function Player() {
       characterRef.current.rotation.y = characterRotation.current
     }
 
-    // Update camera position based on view mode
+    // Update player position in store for ghost AI
     const pos = rb.translation()
+    useGameStore.getState().setPlayerPosition([pos.x, pos.y, pos.z])
+
+    // Update camera position based on view mode
 
     if (isFirstPerson) {
       // First-person view: camera at player's eye level
