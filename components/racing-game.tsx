@@ -49,8 +49,8 @@ export function RacingGame() {
       <RacingUI />
 
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <div className="text-center">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
+          <div className="text-center pointer-events-auto">
             <h1 className="text-6xl font-bold text-white mb-4">Racing Game</h1>
             <p className="text-xl text-white/90 mb-8">Juego de carreras simple con Three.js</p>
             <div className="text-sm text-white/70 space-y-2">
