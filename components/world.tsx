@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import { Block } from "./block"
 import { Ground } from "./ground"
+import { ExplosionManager } from "./explosion-effect"
+import { DebrisManager } from "./debris"
 import { useGameStore } from "@/lib/game-store"
 
 const WORLD_SIZE = 60
@@ -21,6 +23,8 @@ export function World() {
       {blocks.map((block) => (
         <Block key={block.id} id={block.id} position={block.position} type={block.type} />
       ))}
+      <ExplosionManager />
+      <DebrisManager />
     </>
   )
 }

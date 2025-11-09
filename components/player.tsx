@@ -75,6 +75,9 @@ export function Player() {
         case "KeyX":
           useGameStore.getState().toggleViewMode()
           break
+        case "KeyE":
+          useGameStore.getState().toggleExplosionMode()
+          break
       }
     }
 
