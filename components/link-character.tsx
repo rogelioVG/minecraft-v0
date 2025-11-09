@@ -4,20 +4,18 @@ import { useRef } from "react"
 import { Group } from "three"
 
 interface LinkCharacterProps {
-  isWalking?: boolean
-  walkCycle?: number
+  leftLegRef?: React.RefObject<Group>
+  rightLegRef?: React.RefObject<Group>
+  leftArmRef?: React.RefObject<Group>
+  rightArmRef?: React.RefObject<Group>
+  bodyRef?: React.RefObject<Group>
 }
 
-export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacterProps) {
+export function LinkCharacter({ leftLegRef, rightLegRef, leftArmRef, rightArmRef, bodyRef }: LinkCharacterProps) {
   const groupRef = useRef<Group>(null)
-  
-  // Calculate animation values with more pronounced movement
-  const legSwing = isWalking ? Math.sin(walkCycle * 5) * 0.6 : 0
-  const armSwing = isWalking ? Math.sin(walkCycle * 5) * 0.4 : 0
-  const bodyBob = isWalking ? Math.abs(Math.sin(walkCycle * 10)) * 0.08 : 0
 
   return (
-    <group ref={groupRef} position={[0, bodyBob, 0]}>
+    <group ref={bodyRef} position={[0, 0, 0]}>
       {/* Head - beige/tan */}
       <mesh position={[0, 1.75, 0]} castShadow>
         <boxGeometry args={[0.5, 0.5, 0.5]} />
@@ -77,7 +75,7 @@ export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacte
       </mesh>
 
       {/* Arms - green tunic sleeves with animation */}
-      <group position={[-0.45, 1.1, 0]} rotation={[armSwing, 0, 0]}>
+      <group ref={leftArmRef} position={[-0.45, 1.1, 0]} rotation={[0, 0, 0]}>
         <mesh castShadow>
           <boxGeometry args={[0.25, 0.7, 0.25]} />
           <meshStandardMaterial color="#2d5016" />
@@ -89,7 +87,7 @@ export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacte
         </mesh>
       </group>
       
-      <group position={[0.45, 1.1, 0]} rotation={[-armSwing, 0, 0]}>
+      <group ref={rightArmRef} position={[0.45, 1.1, 0]} rotation={[0, 0, 0]}>
         <mesh castShadow>
           <boxGeometry args={[0.25, 0.7, 0.25]} />
           <meshStandardMaterial color="#2d5016" />
@@ -102,7 +100,7 @@ export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacte
       </group>
 
       {/* Legs - white/cream leggings with animation */}
-      <group position={[-0.2, 0.35, 0]} rotation={[-legSwing, 0, 0]}>
+      <group ref={leftLegRef} position={[-0.2, 0.35, 0]} rotation={[0, 0, 0]}>
         <mesh castShadow>
           <boxGeometry args={[0.25, 0.7, 0.3]} />
           <meshStandardMaterial color="#f5f5dc" />
@@ -114,7 +112,7 @@ export function LinkCharacter({ isWalking = false, walkCycle = 0 }: LinkCharacte
         </mesh>
       </group>
       
-      <group position={[0.2, 0.35, 0]} rotation={[legSwing, 0, 0]}>
+      <group ref={rightLegRef} position={[0.2, 0.35, 0]} rotation={[0, 0, 0]}>
         <mesh castShadow>
           <boxGeometry args={[0.25, 0.7, 0.3]} />
           <meshStandardMaterial color="#f5f5dc" />
