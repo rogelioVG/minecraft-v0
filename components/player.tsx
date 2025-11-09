@@ -23,7 +23,7 @@ export function Player() {
   const bodyRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const { isPlaying, shootArrow } = useGameStore()
+  const { isPlaying, throwBomb } = useGameStore()
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
   const walkCycle = useRef(0)
@@ -117,19 +117,19 @@ export function Player() {
       // Get the direction vector from the raycaster
       const direction = raycaster.ray.direction.clone().normalize()
 
-      // Calculate arrow spawn position (in front of player, towards the cursor)
+      // Calculate bomb spawn position (in front of player, towards the cursor)
       const spawnDistance = 1.5
-      const spawnHeight = 1.5 // Height at which arrow spawns
-      const arrowPosition: [number, number, number] = [
+      const spawnHeight = 1.5 // Height at which bomb spawns
+      const bombPosition: [number, number, number] = [
         pos.x + direction.x * spawnDistance,
         pos.y + spawnHeight,
         pos.z + direction.z * spawnDistance
       ]
 
-      const arrowDirection: [number, number, number] = [direction.x, direction.y, direction.z]
+      const bombDirection: [number, number, number] = [direction.x, direction.y, direction.z]
 
-      // Shoot the arrow
-      shootArrow(arrowPosition, arrowDirection)
+      // Throw the bomb
+      throwBomb(bombPosition, bombDirection)
     }
 
     document.addEventListener("keydown", handleKeyDown)

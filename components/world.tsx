@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { Block } from "./block"
 import { Ground } from "./ground"
-import { Arrow } from "./arrow"
+import { Bomb } from "./bomb"
 import { DekuTree } from "./deku-tree"
 import { useGameStore } from "@/lib/game-store"
 
@@ -11,7 +11,7 @@ const WORLD_SIZE = 20
 const WORLD_HEIGHT = 5
 
 export function World() {
-  const { blocks, arrows, removeArrow, initializeWorld } = useGameStore()
+  const { blocks, bombs, removeBomb, initializeWorld } = useGameStore()
 
   useEffect(() => {
     initializeWorld(WORLD_SIZE, WORLD_HEIGHT)
@@ -24,13 +24,13 @@ export function World() {
       {blocks.map((block) => (
         <Block key={block.id} id={block.id} position={block.position} type={block.type} />
       ))}
-      {arrows.map((arrow) => (
-        <Arrow 
-          key={arrow.id} 
-          id={arrow.id} 
-          position={arrow.position} 
-          direction={arrow.direction}
-          onHit={removeArrow}
+      {bombs.map((bomb) => (
+        <Bomb 
+          key={bomb.id} 
+          id={bomb.id} 
+          position={bomb.position} 
+          direction={bomb.direction}
+          onDetonate={removeBomb}
         />
       ))}
     </>
