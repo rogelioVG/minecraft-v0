@@ -5,7 +5,7 @@ import { Block } from "./block"
 import { Ground } from "./ground"
 import { useGameStore } from "@/lib/game-store"
 
-const WORLD_SIZE = 20
+const WORLD_SIZE = 60
 const WORLD_HEIGHT = 5
 
 export function World() {
