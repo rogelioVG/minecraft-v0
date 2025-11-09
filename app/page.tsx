@@ -1,7 +1,7 @@
 "use client"
 
-import { MinecraftGame } from "@/components/minecraft-game"
+import { RacingGame } from "@/components/racing-game"
 
 export default function Page() {
-  return <MinecraftGame />
+  return <RacingGame />
 }
