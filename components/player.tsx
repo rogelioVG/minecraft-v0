@@ -25,7 +25,7 @@ export function Player() {
   const bodyRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const { isPlaying } = useGameStore()
+  const { isPlaying, shootArrow } = useGameStore()
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
   const walkCycle = useRef(0)
@@ -101,16 +101,47 @@ export function Player() {
       cameraRotation.current.vertical = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotation.current.vertical))
     }
 
+    const handleClick = (e: MouseEvent) => {
+      if (!isPlaying || !rigidBodyRef.current) return
+
+      // Get player position
+      const pos = rigidBodyRef.current.translation()
+      
+      // Calculate arrow spawn position (in front of player)
+      const spawnDistance = 1.5
+      const spawnHeight = 1.5 // Height at which arrow spawns
+      const arrowPosition: [number, number, number] = [
+        pos.x - Math.sin(cameraRotation.current.horizontal) * spawnDistance,
+        pos.y + spawnHeight,
+        pos.z - Math.cos(cameraRotation.current.horizontal) * spawnDistance
+      ]
+
+      // Calculate direction based on camera rotation
+      const direction = new Vector3(
+        -Math.sin(cameraRotation.current.horizontal),
+        Math.tan(cameraRotation.current.vertical),
+        -Math.cos(cameraRotation.current.horizontal)
+      )
+      direction.normalize()
+
+      const arrowDirection: [number, number, number] = [direction.x, direction.y, direction.z]
+
+      // Shoot the arrow
+      shootArrow(arrowPosition, arrowDirection)
+    }
+
     document.addEventListener("keydown", handleKeyDown)
     document.addEventListener("keyup", handleKeyUp)
     document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("click", handleClick)
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
       document.removeEventListener("keyup", handleKeyUp)
       document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("click", handleClick)
     }
-  }, [isPlaying])
+  }, [isPlaying, shootArrow])
 
   useFrame((state, delta) => {
     if (!rigidBodyRef.current || !isPlaying) return

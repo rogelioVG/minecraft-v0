@@ -8,8 +8,15 @@ interface Block {
   type: BlockType
 }
 
+interface Arrow {
+  id: string
+  position: [number, number, number]
+  direction: [number, number, number]
+}
+
 interface GameState {
   blocks: Block[]
+  arrows: Arrow[]
   selectedBlockType: BlockType
   isPlaying: boolean
   setSelectedBlockType: (type: BlockType) => void
@@ -17,16 +24,36 @@ interface GameState {
   removeBlock: (id: string) => void
   initializeWorld: (size: number, height: number) => void
   setIsPlaying: (playing: boolean) => void
+  shootArrow: (position: [number, number, number], direction: [number, number, number]) => void
+  removeArrow: (id: string) => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
   blocks: [],
+  arrows: [],
   selectedBlockType: "grass",
   isPlaying: false,
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
   setIsPlaying: (playing) => set({ isPlaying: playing }),
+
+  shootArrow: (position, direction) =>
+    set((state) => ({
+      arrows: [
+        ...state.arrows,
+        {
+          id: `arrow-${Date.now()}-${Math.random()}`,
+          position,
+          direction,
+        },
+      ],
+    })),
+
+  removeArrow: (id) =>
+    set((state) => ({
+      arrows: state.arrows.filter((arrow) => arrow.id !== id),
+    })),
 
   addBlock: (position, type) =>
     set((state) => ({
