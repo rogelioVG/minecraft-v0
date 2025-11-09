@@ -46,6 +46,9 @@ interface GameState {
   ghosts: Ghost[]
   holyWater: HolyWater[]
   playerPosition: [number, number, number]
+  health: number
+  maxHealth: number
+  lastDamageTime: number
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
@@ -62,6 +65,8 @@ interface GameState {
   setPlayerPosition: (position: [number, number, number]) => void
   removeDebris: (id: string) => void
   removeGhost: (id: string) => void
+  takeDamage: (amount: number) => void
+  heal: (amount: number) => void
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -75,6 +80,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   ghosts: [],
   holyWater: [],
   playerPosition: [0, 10, 0],
+  health: 100,
+  maxHealth: 100,
+  lastDamageTime: 0,
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
@@ -294,6 +302,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => {
       const playerPos = state.playerPosition
       const GHOST_SPEED = 3
+      const DAMAGE_DISTANCE = 1.5 // Distance at which ghost damages player
+      const GHOST_DAMAGE = 10
 
       const updatedGhosts = state.ghosts.map((ghost) => {
         // Calculate direction to player
@@ -301,6 +311,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         const dy = playerPos[1] - ghost.position[1]
         const dz = playerPos[2] - ghost.position[2]
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+
+        // Check if ghost is close enough to damage player
+        if (distance < DAMAGE_DISTANCE) {
+          get().takeDamage(GHOST_DAMAGE)
+        }
 
         if (distance > 0.5) {
           // Normalize and apply speed
@@ -407,4 +422,27 @@ export const useGameStore = create<GameState>((set, get) => ({
         ghosts: remainingGhosts,
       }
     }),
+
+  takeDamage: (amount) =>
+    set((state) => {
+      const now = Date.now()
+      const DAMAGE_COOLDOWN = 1000 // 1 second cooldown between damage
+
+      // Prevent taking damage too frequently
+      if (now - state.lastDamageTime < DAMAGE_COOLDOWN) {
+        return state
+      }
+
+      const newHealth = Math.max(0, state.health - amount)
+      
+      return {
+        health: newHealth,
+        lastDamageTime: now,
+      }
+    }),
+
+  heal: (amount) =>
+    set((state) => ({
+      health: Math.min(state.maxHealth, state.health + amount),
+    })),
 }))
