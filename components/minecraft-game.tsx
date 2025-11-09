@@ -47,7 +47,7 @@ export function MinecraftGame() {
             <div className="text-sm text-white/70 space-y-2">
               <p>WASD - Move | Space - Jump | Shift - Sprint</p>
               <p>Mouse - Look Around</p>
-              <p>Click - Shoot Arrows</p>
+              <p>Click - Throw Bombs</p>
               <p>ESC - Pause</p>
             </div>
           </div>
