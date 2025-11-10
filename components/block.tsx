@@ -1,9 +1,11 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { RigidBody } from "@react-three/rapier"
 import { useGameStore, type BlockType } from "@/lib/game-store"
 import type * as THREE from "three"
+import { useFrame } from "@react-three/fiber"
+import { Vector3 } from "three"
 
 interface BlockProps {
   id: string
@@ -29,8 +31,10 @@ const BLOCK_TEXTURES: Record<BlockType, { top?: string; side: string; bottom?: s
 
 export function Block({ id, position, type }: BlockProps) {
   const meshRef = useRef<THREE.Mesh>(null)
+  const rigidBodyRef = useRef<any>(null)
   const [hovered, setHovered] = useState(false)
-  const { removeBlock, addBlock, selectedBlockType, isPlaying } = useGameStore()
+  const [isDynamic, setIsDynamic] = useState(false)
+  const { removeBlock, addBlock, selectedBlockType, isPlaying, explosionForces, clearExplosionForces } = useGameStore()
 
   const handleClick = (e: any) => {
     if (!isPlaying) return
@@ -48,10 +52,67 @@ export function Block({ id, position, type }: BlockProps) {
     }
   }
 
+  // Check for explosions and apply forces
+  useFrame(() => {
+    if (explosionForces.length > 0 && rigidBodyRef.current) {
+      const blockPos = isDynamic ? rigidBodyRef.current.translation() : { x: position[0], y: position[1], z: position[2] }
+      
+      explosionForces.forEach((explosion) => {
+        const distance = Math.sqrt(
+          Math.pow(blockPos.x - explosion.position[0], 2) +
+          Math.pow(blockPos.y - explosion.position[1], 2) +
+          Math.pow(blockPos.z - explosion.position[2], 2)
+        )
+        
+        if (distance < explosion.radius) {
+          // Make block dynamic if it's not already
+          if (!isDynamic) {
+            setIsDynamic(true)
+          }
+          
+          // Apply impulse away from explosion
+          if (isDynamic && rigidBodyRef.current) {
+            const direction = new Vector3(
+              blockPos.x - explosion.position[0],
+              blockPos.y - explosion.position[1],
+              blockPos.z - explosion.position[2]
+            ).normalize()
+            
+            // Force decreases with distance (inverse square)
+            const forceMagnitude = explosion.force * (1 - distance / explosion.radius)
+            
+            rigidBodyRef.current.applyImpulse({
+              x: direction.x * forceMagnitude,
+              y: direction.y * forceMagnitude + 5, // Add upward boost
+              z: direction.z * forceMagnitude,
+            }, true)
+          }
+        }
+      })
+    }
+  })
+
+  // Clear explosion forces after processing (only once per frame)
+  useEffect(() => {
+    if (explosionForces.length > 0) {
+      const timeout = setTimeout(() => {
+        clearExplosionForces()
+      }, 100)
+      return () => clearTimeout(timeout)
+    }
+  }, [explosionForces, clearExplosionForces])
+
   const texture = BLOCK_TEXTURES[type]
 
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={position}>
+    <RigidBody 
+      ref={rigidBodyRef}
+      type={isDynamic ? "dynamic" : "fixed"} 
+      colliders="cuboid" 
+      position={position}
+      mass={isDynamic ? 2 : undefined}
+      gravityScale={isDynamic ? 1 : undefined}
+    >
       <mesh
         ref={meshRef}
         castShadow

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react"
 import { RigidBody } from "@react-three/rapier"
 import { Vector3 } from "three"
 import { useFrame } from "@react-three/fiber"
+import { useGameStore } from "@/lib/game-store"
 
 interface BombProps {
   id: string
@@ -18,6 +19,8 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
   const DETONATION_TIME = 2 // 2 seconds before bomb detonates
   const [isExploding, setIsExploding] = useState(false)
   const explosionTimer = useRef(0)
+  const hasTriggeredExplosion = useRef(false)
+  const { triggerExplosion } = useGameStore()
 
   useEffect(() => {
     if (rigidBodyRef.current) {
@@ -34,6 +37,15 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
     if (lifetime.current >= DETONATION_TIME && !isExploding) {
       setIsExploding(true)
       explosionTimer.current = 0
+      
+      // Trigger explosion physics
+      if (!hasTriggeredExplosion.current && rigidBodyRef.current) {
+        const pos = rigidBodyRef.current.translation()
+        const explosionPos: [number, number, number] = [pos.x, pos.y, pos.z]
+        // Trigger explosion with force 20 and radius 8
+        triggerExplosion(explosionPos, 20, 8)
+        hasTriggeredExplosion.current = true
+      }
     }
 
     // Handle explosion animation
