@@ -181,11 +181,11 @@ export function Player() {
             ).normalize()
             
             // Force decreases with distance
-            const forceMagnitude = explosion.force * (1 - distance / explosion.radius) * 0.8
+            const forceMagnitude = explosion.force * (1 - distance / explosion.radius) * 1.5 // Increased multiplier
             
             rb.applyImpulse({
               x: direction.x * forceMagnitude,
-              y: direction.y * forceMagnitude + 8, // Add upward boost for player
+              y: direction.y * forceMagnitude + 12, // Increased upward boost for more dramatic effect
               z: direction.z * forceMagnitude,
             }, true)
           }
