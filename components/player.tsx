@@ -23,12 +23,13 @@ export function Player() {
   const bodyRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const { isPlaying, throwBomb } = useGameStore()
+  const { isPlaying, throwBomb, explosionForces, clearExplosionForces } = useGameStore()
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
   const walkCycle = useRef(0)
   const isMoving = useRef(false)
   const mousePosition = useRef(new Vector2(0, 0))
+  const hasProcessedExplosions = useRef(new Set<string>())
 
   const movement = useRef({
     forward: false,
@@ -155,6 +156,45 @@ export function Player() {
     // Check if on ground
     isOnGround.current = Math.abs(vel.y) < 0.1
 
+    // Check for explosions and apply knockback
+    if (explosionForces.length > 0) {
+      const playerPos = rb.translation()
+      
+      explosionForces.forEach((explosion) => {
+        // Create unique ID for this explosion
+        const explosionId = `${explosion.position[0]}-${explosion.position[1]}-${explosion.position[2]}`
+        
+        // Only process each explosion once
+        if (!hasProcessedExplosions.current.has(explosionId)) {
+          const distance = Math.sqrt(
+            Math.pow(playerPos.x - explosion.position[0], 2) +
+            Math.pow(playerPos.y - explosion.position[1], 2) +
+            Math.pow(playerPos.z - explosion.position[2], 2)
+          )
+          
+          if (distance < explosion.radius) {
+            // Apply impulse away from explosion
+            const direction = new Vector3(
+              playerPos.x - explosion.position[0],
+              playerPos.y - explosion.position[1],
+              playerPos.z - explosion.position[2]
+            ).normalize()
+            
+            // Force decreases with distance
+            const forceMagnitude = explosion.force * (1 - distance / explosion.radius) * 0.8
+            
+            rb.applyImpulse({
+              x: direction.x * forceMagnitude,
+              y: direction.y * forceMagnitude + 8, // Add upward boost for player
+              z: direction.z * forceMagnitude,
+            }, true)
+          }
+          
+          hasProcessedExplosions.current.add(explosionId)
+        }
+      })
+    }
+
     // Movement
     const speed = movement.current.sprint ? SPRINT_SPEED : MOVE_SPEED
     const direction = new Vector3()
@@ -271,6 +311,13 @@ export function Player() {
     camera.rotation.y = cameraRotation.current.horizontal
     camera.rotation.x = cameraRotation.current.vertical
   })
+
+  // Clear processed explosions when new ones come in
+  useEffect(() => {
+    if (explosionForces.length === 0) {
+      hasProcessedExplosions.current.clear()
+    }
+  }, [explosionForces])
 
   return (
     <RigidBody

@@ -6,6 +6,7 @@ interface Block {
   id: string
   position: [number, number, number]
   type: BlockType
+  isDynamic?: boolean
 }
 
 interface Bomb {
@@ -14,18 +15,28 @@ interface Bomb {
   direction: [number, number, number]
 }
 
+interface ExplosionForce {
+  position: [number, number, number]
+  force: number
+  radius: number
+}
+
 interface GameState {
   blocks: Block[]
   bombs: Bomb[]
   selectedBlockType: BlockType
   isPlaying: boolean
+  explosionForces: ExplosionForce[]
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
   removeBlock: (id: string) => void
+  makeBlockDynamic: (id: string) => void
   initializeWorld: (size: number, height: number) => void
   setIsPlaying: (playing: boolean) => void
   throwBomb: (position: [number, number, number], direction: [number, number, number]) => void
   removeBomb: (id: string) => void
+  triggerExplosion: (position: [number, number, number], force: number, radius: number) => void
+  clearExplosionForces: () => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -33,6 +44,7 @@ export const useGameStore = create<GameState>((set) => ({
   bombs: [],
   selectedBlockType: "grass",
   isPlaying: false,
+  explosionForces: [],
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
@@ -71,6 +83,24 @@ export const useGameStore = create<GameState>((set) => ({
     set((state) => ({
       blocks: state.blocks.filter((block) => block.id !== id),
     })),
+
+  makeBlockDynamic: (id) =>
+    set((state) => ({
+      blocks: state.blocks.map((block) =>
+        block.id === id ? { ...block, isDynamic: true } : block
+      ),
+    })),
+
+  triggerExplosion: (position, force, radius) =>
+    set((state) => ({
+      explosionForces: [
+        ...state.explosionForces,
+        { position, force, radius },
+      ],
+    })),
+
+  clearExplosionForces: () =>
+    set({ explosionForces: [] }),
 
   initializeWorld: (size, height) => {
     const blocks: Block[] = []
