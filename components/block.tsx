@@ -97,7 +97,7 @@ export function Block({ id, position, type }: BlockProps) {
     if (explosionForces.length > 0) {
       const timeout = setTimeout(() => {
         clearExplosionForces()
-      }, 100)
+      }, 300) // Increased to 300ms to give player time to process
       return () => clearTimeout(timeout)
     }
   }, [explosionForces, clearExplosionForces])
