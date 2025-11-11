@@ -38,11 +38,11 @@ export function Car() {
     const position = body.translation()
 
     // Control parameters
-    const acceleration = 25
-    const maxSpeed = 20
-    const turnSpeed = 2
-    const brakeForce = 15
-    const handbrakeForce = 25
+    const acceleration = 50
+    const maxSpeed = 30
+    const turnSpeed = 2.5
+    const brakeForce = 20
+    const handbrakeForce = 30
 
     // Get current velocity for speed calculation
     const speed = Math.sqrt(velocity.x ** 2 + velocity.z ** 2)
@@ -96,7 +96,7 @@ export function Car() {
     body.applyTorqueImpulse(torque, true)
 
     // Apply drag
-    const drag = 0.98
+    const drag = 0.99
     body.setLinvel(
       {
         x: velocity.x * drag,
@@ -133,7 +133,7 @@ export function Car() {
       position={[0, 2, 0]}
       colliders="cuboid"
       mass={1}
-      linearDamping={0.5}
+      linearDamping={0.3}
       angularDamping={0.5}
     >
       <group>
