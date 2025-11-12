@@ -140,13 +140,13 @@ export function Car() {
         {/* Car Body */}
         <mesh castShadow position={[0, 0.3, 0]}>
           <boxGeometry args={[1.5, 0.6, 3]} />
-          <meshStandardMaterial color="#FFD700" metalness={0.6} roughness={0.4} />
+          <meshStandardMaterial color="#9333EA" metalness={0.6} roughness={0.4} />
         </mesh>
         
         {/* Car Top */}
         <mesh castShadow position={[0, 0.8, -0.3]}>
           <boxGeometry args={[1.3, 0.6, 1.5]} />
-          <meshStandardMaterial color="#FFAA00" metalness={0.6} roughness={0.4} />
+          <meshStandardMaterial color="#A855F7" metalness={0.6} roughness={0.4} />
         </mesh>
 
         {/* Wheels */}
