@@ -104,38 +104,38 @@ export function Block({ id, position, type }: BlockProps) {
 
   const texture = BLOCK_TEXTURES[type]
 
-  return (
-    <RigidBody 
-      ref={rigidBodyRef}
-      type={isDynamic ? "dynamic" : "fixed"} 
-      colliders="cuboid" 
-      position={position}
-      mass={isDynamic ? 2 : undefined}
-      gravityScale={isDynamic ? 1 : undefined}
-    >
-      <mesh
-        ref={meshRef}
-        castShadow
-        receiveShadow
-        onClick={handleClick}
-        onContextMenu={handleClick}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
+    return (
+      <RigidBody
+        ref={rigidBodyRef}
+        type={isDynamic ? "dynamic" : "fixed"}
+        colliders="cuboid"
+        position={position}
+        mass={isDynamic ? 2 : undefined}
+        gravityScale={isDynamic ? 1 : undefined}
       >
-        <boxGeometry args={[1, 1, 1]} />
-        {texture.top ? (
-          <>
-            <meshStandardMaterial attach="material-0" color={texture.side} />
-            <meshStandardMaterial attach="material-1" color={texture.side} />
-            <meshStandardMaterial attach="material-2" color={texture.top} />
-            <meshStandardMaterial attach="material-3" color={texture.bottom || texture.side} />
-            <meshStandardMaterial attach="material-4" color={texture.side} />
-            <meshStandardMaterial attach="material-5" color={texture.side} />
-          </>
-        ) : (
-          <meshStandardMaterial color={hovered ? "#ffffff" : texture.side} />
-        )}
-      </mesh>
-    </RigidBody>
-  )
+        <mesh
+          ref={meshRef}
+          castShadow={false}
+          receiveShadow
+          onClick={handleClick}
+          onContextMenu={handleClick}
+          onPointerEnter={() => setHovered(true)}
+          onPointerLeave={() => setHovered(false)}
+        >
+          <boxGeometry args={[1, 1, 1]} />
+          {texture.top ? (
+            <>
+              <meshStandardMaterial attach="material-0" color={texture.side} />
+              <meshStandardMaterial attach="material-1" color={texture.side} />
+              <meshStandardMaterial attach="material-2" color={texture.top} />
+              <meshStandardMaterial attach="material-3" color={texture.bottom || texture.side} />
+              <meshStandardMaterial attach="material-4" color={texture.side} />
+              <meshStandardMaterial attach="material-5" color={texture.side} />
+            </>
+          ) : (
+            <meshStandardMaterial color={hovered ? "#ffffff" : texture.side} />
+          )}
+        </mesh>
+      </RigidBody>
+    )
 }
