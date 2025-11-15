@@ -37,22 +37,23 @@ export function MinecraftGame() {
         <PointerLockControls onLock={() => setIsPlaying(true)} onUnlock={() => setIsPlaying(false)} />
       </Canvas>
 
-      <UI />
+        <UI />
 
-      {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
-          <div className="text-center pointer-events-auto">
-            <h1 className="text-6xl font-bold text-white mb-4">Voxel Craft</h1>
-            <p className="text-xl text-white/90 mb-8">First Person Adventure!</p>
-            <div className="text-sm text-white/70 space-y-2">
-              <p>WASD - Move | Space - Jump | Shift - Sprint</p>
-              <p>Mouse - Look Around</p>
-              <p>Click - Throw Bombs</p>
-              <p>ESC - Pause</p>
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
+            <div className="text-center pointer-events-auto">
+              <h1 className="text-6xl font-bold text-white mb-4">Rancho Sonora</h1>
+              <p className="text-xl text-white/90 mb-8">Explora el rancho y domina el desierto.</p>
+              <div className="text-sm text-white/70 space-y-2">
+                <p>WASD - Moverte | Space - Saltar | Shift - Correr</p>
+                <p>Click - Lanzar bombas | Mouse - Mirar</p>
+                <p>H - Montar/Desmontar caballo | L - Lazo</p>
+                <p>B - Subirte al barco | F - Pescar</p>
+                <p>Evita las choyas, quitan vidas. ESC - Pausa.</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   )
 }

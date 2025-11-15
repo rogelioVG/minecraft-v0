@@ -11,6 +11,7 @@ const MOVE_SPEED = 5
 const SPRINT_SPEED = 8
 const JUMP_FORCE = 8
 const CAMERA_HEIGHT_OFFSET = 0.5 // Height above player capsule center for first-person view
+const SPAWN_POINT: [number, number, number] = [0, 6, 0]
 
 export function Player() {
   const { camera } = useThree()
@@ -23,16 +24,20 @@ export function Player() {
   const bodyRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const isPlaying = useGameStore((state) => state.isPlaying)
-  const throwBomb = useGameStore((state) => state.throwBomb)
-  const explosionForces = useGameStore((state) => state.explosionForces)
-  const isDrivingCar = useGameStore((state) => state.isDrivingCar)
+    const isPlaying = useGameStore((state) => state.isPlaying)
+    const throwBomb = useGameStore((state) => state.throwBomb)
+    const explosionForces = useGameStore((state) => state.explosionForces)
+    const isDrivingCar = useGameStore((state) => state.isDrivingCar)
+    const isRidingHorse = useGameStore((state) => state.isRidingHorse)
+    const isOnBoat = useGameStore((state) => state.isOnBoat)
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
   const walkCycle = useRef(0)
   const isMoving = useRef(false)
-  const hasProcessedExplosions = useRef(new Set<string>())
-  const storedPosition = useRef<[number, number, number] | null>(null)
+    const hasProcessedExplosions = useRef(new Set<string>())
+    const storedPosition = useRef<[number, number, number] | null>(null)
+    const setPlayerPosition = useGameStore((state) => state.setPlayerPosition)
+    const respawnSignal = useGameStore((state) => state.respawnSignal)
 
   const movement = useRef({
     forward: false,
@@ -45,7 +50,7 @@ export function Player() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isPlaying || isDrivingCar) return
+        if (!isPlaying || isDrivingCar || isRidingHorse || isOnBoat) return
 
       switch (e.code) {
         case "KeyW":
@@ -71,7 +76,7 @@ export function Player() {
     }
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (isDrivingCar) return
+        if (isDrivingCar || isRidingHorse || isOnBoat) return
 
       switch (e.code) {
         case "KeyW":
@@ -96,7 +101,7 @@ export function Player() {
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isPlaying || isDrivingCar) return
+        if (!isPlaying || isDrivingCar || isRidingHorse || isOnBoat) return
 
       const sensitivity = 0.002
       cameraRotation.current.horizontal -= e.movementX * sensitivity
@@ -106,8 +111,8 @@ export function Player() {
       cameraRotation.current.vertical = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotation.current.vertical))
     }
 
-    const handleClick = () => {
-      if (!isPlaying) return
+      const handleClick = () => {
+        if (!isPlaying || isDrivingCar || isRidingHorse || isOnBoat) return
 
       // Get the direction the camera is currently facing (screen center)
       const direction = new Vector3()
@@ -139,13 +144,15 @@ export function Player() {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("click", handleClick)
     }
-  }, [isPlaying, isDrivingCar, throwBomb, camera])
+    }, [isPlaying, isDrivingCar, isRidingHorse, isOnBoat, throwBomb, camera])
 
   // Temporarily park the player body when they hop into the car
-  useEffect(() => {
-    if (!rigidBodyRef.current) return
+    useEffect(() => {
+      if (!rigidBodyRef.current) return
 
-    if (isDrivingCar) {
+      const shouldAnchor = isDrivingCar || isRidingHorse || isOnBoat
+
+      if (shouldAnchor) {
       const current = rigidBodyRef.current.translation()
       storedPosition.current = [current.x, current.y, current.z]
       rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
@@ -156,8 +163,8 @@ export function Player() {
       movement.current.left = false
       movement.current.right = false
       movement.current.jump = false
-      movement.current.sprint = false
-    } else {
+        movement.current.sprint = false
+      } else {
       rigidBodyRef.current.setBodyType("dynamic", true)
 
       if (storedPosition.current) {
@@ -169,13 +176,24 @@ export function Player() {
           },
           true,
         )
+        }
       }
-    }
-  }, [isDrivingCar])
+    }, [isDrivingCar, isRidingHorse, isOnBoat])
 
-  useFrame((_, delta) => {
-    if (!rigidBodyRef.current || !isPlaying) return
-    if (isDrivingCar) return
+    useEffect(() => {
+      if (!rigidBodyRef.current) return
+
+      rigidBodyRef.current.setBodyType("dynamic", true)
+      rigidBodyRef.current.setTranslation(
+        { x: SPAWN_POINT[0], y: SPAWN_POINT[1], z: SPAWN_POINT[2] },
+        true,
+      )
+      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+    }, [respawnSignal])
+
+    useFrame((_, delta) => {
+      if (!rigidBodyRef.current || !isPlaying) return
+      if (isDrivingCar || isRidingHorse || isOnBoat) return
 
     const rb = rigidBodyRef.current
     const vel = rb.linvel()
@@ -188,7 +206,7 @@ export function Player() {
     if (explosionForces.length > 0) {
       const playerPos = rb.translation()
       
-      explosionForces.forEach((explosion) => {
+        explosionForces.forEach((explosion) => {
         // Create unique ID for this explosion
         const explosionId = `${explosion.position[0]}-${explosion.position[1]}-${explosion.position[2]}`
         
@@ -218,9 +236,9 @@ export function Player() {
             }, true)
           }
           
-          hasProcessedExplosions.current.add(explosionId)
-        }
-      })
+            hasProcessedExplosions.current.add(explosionId)
+          }
+        })
     }
 
     // Movement
@@ -336,8 +354,10 @@ export function Player() {
 
     // Set camera rotation based on mouse movement
     camera.rotation.order = 'YXZ'
-    camera.rotation.y = cameraRotation.current.horizontal
-    camera.rotation.x = cameraRotation.current.vertical
+      camera.rotation.y = cameraRotation.current.horizontal
+      camera.rotation.x = cameraRotation.current.vertical
+
+      setPlayerPosition([pos.x, pos.y, pos.z])
   })
 
   // Clear processed explosions when new ones come in
