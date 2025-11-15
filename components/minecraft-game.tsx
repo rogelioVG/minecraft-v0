@@ -13,15 +13,20 @@ export function MinecraftGame() {
 
   return (
     <div className="w-full h-screen relative">
-      <Canvas shadows camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 10, 0] }}>
+      <Canvas
+        shadows
+        dpr={[1, 1.5]}
+        gl={{ powerPreference: "high-performance" }}
+        camera={{ fov: 70, near: 0.1, far: 400, position: [0, 10, 0] }}
+      >
         <Sky sunPosition={[100, 20, 100]} />
         <ambientLight intensity={0.5} />
         <directionalLight
           position={[50, 50, 25]}
-          intensity={1}
+          intensity={0.85}
           castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
           shadow-camera-far={100}
           shadow-camera-left={-50}
           shadow-camera-right={50}
@@ -37,23 +42,23 @@ export function MinecraftGame() {
         <PointerLockControls onLock={() => setIsPlaying(true)} onUnlock={() => setIsPlaying(false)} />
       </Canvas>
 
-        <UI />
+      <UI />
 
-        {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
-            <div className="text-center pointer-events-auto">
-              <h1 className="text-6xl font-bold text-white mb-4">Rancho Sonora</h1>
-              <p className="text-xl text-white/90 mb-8">Explora el rancho y domina el desierto.</p>
-              <div className="text-sm text-white/70 space-y-2">
-                <p>WASD - Moverte | Space - Saltar | Shift - Correr</p>
-                <p>Click - Lanzar bombas | Mouse - Mirar</p>
-                <p>H - Montar/Desmontar caballo | L - Lazo</p>
-                <p>B - Subirte al barco | F - Pescar</p>
-                <p>Evita las choyas, quitan vidas. ESC - Pausa.</p>
-              </div>
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
+          <div className="text-center pointer-events-auto">
+            <h1 className="text-6xl font-bold text-white mb-4">Rancho Sonora</h1>
+            <p className="text-xl text-white/90 mb-8">Explora el rancho y domina el desierto.</p>
+            <div className="text-sm text-white/70 space-y-2">
+              <p>WASD - Moverte | Space - Saltar | Shift - Correr</p>
+              <p>Click - Lanzar bombas | Mouse - Mirar</p>
+              <p>H - Montar/Desmontar caballo | L - Lazo</p>
+              <p>B - Subirte al barco | F - Pescar</p>
+              <p>Evita las choyas, quitan vidas. ESC - Pausa.</p>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   )
 }

@@ -268,85 +268,83 @@ export const useGameStore = create<GameState>((set, get) => ({
       ],
     })),
 
-  clearExplosionForces: () =>
-    set({ explosionForces: [] }),
+    clearExplosionForces: () =>
+      set({ explosionForces: [] }),
 
-  initializeWorld: (_size, _height) => {
-    const blocks: Block[] = []
+    initializeWorld: (_size, _height) => {
+      const blockMap = new Map<string, Block>()
 
-    const addBlock = (x: number, y: number, z: number, type: BlockType) => {
-      blocks.push({
-        id: `${x}-${y}-${z}`,
-        position: [x, y, z],
-        type,
-      })
-    }
+      const addBlock = (x: number, y: number, z: number, type: BlockType) => {
+        const id = `${x}-${y}-${z}`
+        if (blockMap.has(id)) {
+          return
+        }
 
-    const fillRectangle = (
-      xStart: number,
-      xEnd: number,
-      zStart: number,
-      zEnd: number,
-      y: number,
-      type: BlockType,
-    ) => {
-      for (let x = xStart; x <= xEnd; x++) {
-        for (let z = zStart; z <= zEnd; z++) {
-          addBlock(x, y, z, type)
+        blockMap.set(id, {
+          id,
+          position: [x, y, z],
+          type,
+        })
+      }
+
+      const fillRectangle = (
+        xStart: number,
+        xEnd: number,
+        zStart: number,
+        zEnd: number,
+        y: number,
+        type: BlockType,
+      ) => {
+        for (let x = xStart; x <= xEnd; x++) {
+          for (let z = zStart; z <= zEnd; z++) {
+            addBlock(x, y, z, type)
+          }
         }
       }
-    }
 
-    const addDune = (centerX: number, centerZ: number, radius: number, heightScale: number) => {
-      for (let x = centerX - radius; x <= centerX + radius; x++) {
-        for (let z = centerZ - radius; z <= centerZ + radius; z++) {
-          const dx = x - centerX
-          const dz = z - centerZ
-          const distance = Math.sqrt(dx * dx + dz * dz)
+      const addLowDune = (centerX: number, centerZ: number, radius: number, height: number) => {
+        for (let x = centerX - radius; x <= centerX + radius; x++) {
+          for (let z = centerZ - radius; z <= centerZ + radius; z++) {
+            const dx = x - centerX
+            const dz = z - centerZ
+            const distanceSq = dx * dx + dz * dz
+            if (distanceSq > radius * radius) continue
 
-          if (distance <= radius) {
-            const height = Math.round((1 - distance / radius) * heightScale)
-            for (let y = 1; y <= height; y++) {
+            const falloff = 1 - Math.sqrt(distanceSq) / radius
+            const maxHeight = Math.max(1, Math.round(falloff * height))
+
+            for (let y = 1; y <= maxHeight; y++) {
               addBlock(x, y, z, "sand")
             }
           }
         }
       }
-    }
 
-    // Base layers of compacted sand and dirt
-    for (let y = -2; y <= -1; y++) {
-      fillRectangle(-40, 40, -40, 40, y, "dirt")
-    }
-    fillRectangle(-40, 40, -40, 40, 0, "sand")
+      // Compact layout: small plaza, corrals and a short walkway to the reservoir.
+      fillRectangle(-6, 6, -3, 5, 0, "dirt") // ranch plaza
+      fillRectangle(-16, -8, 6, 14, 0, "wood") // stable pad
+      fillRectangle(-4, 10, 8, 14, 0, "wood") // corrals
+      fillRectangle(6, 16, -8, -4, 0, "stone") // walkway toward the dam
+      fillRectangle(10, 12, -6, -2, 1, "wood") // small fishing pier
 
-    // Main ranch plaza
-    fillRectangle(-8, 8, -4, 6, 0, "dirt")
+      // A few scattered dunes to break the flatness without thousands of cubes.
+      addLowDune(-12, -6, 3, 2)
+      addLowDune(4, -10, 4, 2)
+      addLowDune(12, 6, 3, 2)
+      addLowDune(-8, 10, 4, 3)
 
-    // Stable foundation
-    fillRectangle(-20, -10, 4, 18, 0, "wood")
+      // Accent stones / details.
+      const accentPads: Array<{ x: number; z: number; size: 2 | 3; type: BlockType }> = [
+        { x: -2, z: 2, size: 3, type: "stone" },
+        { x: 8, z: 0, size: 2, type: "stone" },
+        { x: -10, z: -2, size: 2, type: "wood" },
+      ]
 
-    // Corrals
-    fillRectangle(-6, 12, 10, 18, 0, "wood")
+      accentPads.forEach(({ x, z, size, type }) => {
+        fillRectangle(x, x + size - 1, z, z + size - 1, 0, type)
+      })
 
-    // Dam walkway
-    fillRectangle(10, 30, -20, -6, 0, "stone")
-
-    // Fisher pier
-    fillRectangle(18, 22, -8, -2, 0, "wood")
-
-    // Dunes around the ranch
-    addDune(-25, -12, 6, 4)
-    addDune(-5, -25, 7, 3)
-    addDune(18, -15, 8, 4)
-    addDune(28, 5, 5, 3)
-    addDune(-28, 8, 7, 5)
-    addDune(5, 22, 6, 3)
-
-    // Oasis rim near the reservoir
-    fillRectangle(12, 28, -4, 8, 0, "sand")
-
-    set({ blocks })
-  },
+      set({ blocks: Array.from(blockMap.values()) })
+    },
 
 }))

@@ -11,8 +11,8 @@ import { Cholla } from "./cholla"
 import { Reservoir } from "./reservoir"
 import { useGameStore, HORSE_IDS, type HorseId } from "@/lib/game-store"
 
-const WORLD_SIZE = 60
-const WORLD_HEIGHT = 5
+const WORLD_SIZE = 40
+const WORLD_HEIGHT = 3
 
 const HORSE_CONFIG: Record<
   HorseId,
@@ -26,13 +26,10 @@ const HORSE_CONFIG: Record<
 
 const CHOLLA_POSITIONS: [number, number, number][] = [
   [-4, 0, 2],
-  [2, 0, 8],
   [6, 0, -3],
-  [14, 0, -6],
-  [18, 0, 4],
-  [-10, 0, -5],
-  [-16, 0, 14],
-  [8, 0, 16],
+  [12, 0, 6],
+  [-12, 0, -4],
+  [4, 0, 14],
 ]
 
 export function World() {
