@@ -80,10 +80,10 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
     >
       {!isExploding ? (
         <group>
-          {/* Main bomb body - black sphere */}
+            {/* Main bomb body - blue sphere */}
           <mesh castShadow>
             <sphereGeometry args={[0.3, 16, 16]} />
-            <meshStandardMaterial color={shouldBlink ? "#ff0000" : "#1a1a1a"} />
+              <meshStandardMaterial color={shouldBlink ? "#6ec1ff" : "#1a3d7c"} />
           </mesh>
           
           {/* Fuse - small cylinder on top */}
@@ -92,12 +92,12 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
             <meshStandardMaterial color="#8B4513" />
           </mesh>
           
-          {/* Fuse spark - glowing tip that blinks */}
+            {/* Fuse spark - glowing tip that blinks */}
           <mesh position={[0, 0.38, 0]}>
             <sphereGeometry args={[0.05, 8, 8]} />
             <meshStandardMaterial 
-              color="#ff6600" 
-              emissive="#ff3300"
+                color="#66ccff" 
+                emissive="#1e90ff"
               emissiveIntensity={shouldBlink ? 2 : 0.5}
             />
           </mesh>
@@ -107,17 +107,17 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
             position={[0, 0.38, 0]} 
             intensity={shouldBlink ? 2 : 0.5} 
             distance={2} 
-            color="#ff6600"
+              color="#66ccff"
           />
         </group>
       ) : (
         <group>
-          {/* Explosion effect - expanding spheres */}
+            {/* Explosion effect - expanding spheres */}
           <mesh scale={explosionScale}>
             <sphereGeometry args={[0.5, 16, 16]} />
             <meshStandardMaterial 
-              color="#ff6600" 
-              emissive="#ff3300"
+                color="#66ccff" 
+                emissive="#1e90ff"
               emissiveIntensity={3 - explosionTimer.current * 5}
               transparent
               opacity={Math.max(0, 1 - explosionTimer.current * 2)}
@@ -128,8 +128,8 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
           <mesh scale={explosionScale * 1.3}>
             <sphereGeometry args={[0.5, 16, 16]} />
             <meshStandardMaterial 
-              color="#ffaa00" 
-              emissive="#ff6600"
+                color="#a0e5ff" 
+                emissive="#66ccff"
               emissiveIntensity={2 - explosionTimer.current * 4}
               transparent
               opacity={Math.max(0, 0.5 - explosionTimer.current)}
@@ -140,7 +140,7 @@ export function Bomb({ id, position, direction, onDetonate }: BombProps) {
           <pointLight 
             intensity={10 * (1 - explosionTimer.current * 2)} 
             distance={10} 
-            color="#ff6600"
+              color="#66ccff"
           />
         </group>
       )}
