@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import { RigidBody, CapsuleCollider } from "@react-three/rapier"
-import { Vector3, Euler, Group, Raycaster, Vector2 } from "three"
+import { Vector3, Euler, Group } from "three"
 import { useGameStore } from "@/lib/game-store"
 import { LinkCharacter } from "./link-character"
 
@@ -13,7 +13,7 @@ const JUMP_FORCE = 8
 const CAMERA_HEIGHT_OFFSET = 0.5 // Height above player capsule center for first-person view
 
 export function Player() {
-  const { camera, size } = useThree()
+  const { camera } = useThree()
   const rigidBodyRef = useRef<any>(null)
   const characterRef = useRef<Group>(null)
   const leftLegRef = useRef<Group>(null)
@@ -23,13 +23,16 @@ export function Player() {
   const bodyRef = useRef<Group>(null)
   const isOnGround = useRef(false)
   const velocity = useRef(new Vector3())
-  const { isPlaying, throwBomb, explosionForces, clearExplosionForces } = useGameStore()
+  const isPlaying = useGameStore((state) => state.isPlaying)
+  const throwBomb = useGameStore((state) => state.throwBomb)
+  const explosionForces = useGameStore((state) => state.explosionForces)
+  const isDrivingCar = useGameStore((state) => state.isDrivingCar)
   const cameraRotation = useRef({ horizontal: 0, vertical: 0.3 })
   const characterRotation = useRef(0)
   const walkCycle = useRef(0)
   const isMoving = useRef(false)
-  const mousePosition = useRef(new Vector2(0, 0))
   const hasProcessedExplosions = useRef(new Set<string>())
+  const storedPosition = useRef<[number, number, number] | null>(null)
 
   const movement = useRef({
     forward: false,
@@ -42,7 +45,7 @@ export function Player() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isPlaying) return
+      if (!isPlaying || isDrivingCar) return
 
       switch (e.code) {
         case "KeyW":
@@ -68,6 +71,8 @@ export function Player() {
     }
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (isDrivingCar) return
+
       switch (e.code) {
         case "KeyW":
           movement.current.forward = false
@@ -91,7 +96,7 @@ export function Player() {
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isPlaying) return
+      if (!isPlaying || isDrivingCar) return
 
       const sensitivity = 0.002
       cameraRotation.current.horizontal -= e.movementX * sensitivity
@@ -99,32 +104,22 @@ export function Player() {
 
       // Clamp vertical rotation
       cameraRotation.current.vertical = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotation.current.vertical))
-
-      // Track mouse position in normalized device coordinates (-1 to +1)
-      mousePosition.current.x = (e.clientX / window.innerWidth) * 2 - 1
-      mousePosition.current.y = -(e.clientY / window.innerHeight) * 2 + 1
     }
 
-    const handleClick = (e: MouseEvent) => {
-      if (!isPlaying || !rigidBodyRef.current) return
+    const handleClick = () => {
+      if (!isPlaying) return
 
-      // Get player position
-      const pos = rigidBodyRef.current.translation()
-      
-      // Create a raycaster from the camera through the cursor position
-      const raycaster = new Raycaster()
-      raycaster.setFromCamera(mousePosition.current, camera)
-      
-      // Get the direction vector from the raycaster
-      const direction = raycaster.ray.direction.clone().normalize()
+      // Get the direction the camera is currently facing (screen center)
+      const direction = new Vector3()
+      camera.getWorldDirection(direction)
+      direction.normalize()
 
-      // Calculate bomb spawn position (in front of player, towards the cursor)
+      // Spawn bombs from the middle of the camera view so they travel straight ahead
       const spawnDistance = 1.5
-      const spawnHeight = 1.5 // Height at which bomb spawns
       const bombPosition: [number, number, number] = [
-        pos.x + direction.x * spawnDistance,
-        pos.y + spawnHeight,
-        pos.z + direction.z * spawnDistance
+        camera.position.x + direction.x * spawnDistance,
+        camera.position.y + direction.y * spawnDistance,
+        camera.position.z + direction.z * spawnDistance,
       ]
 
       const bombDirection: [number, number, number] = [direction.x, direction.y, direction.z]
@@ -144,10 +139,43 @@ export function Player() {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("click", handleClick)
     }
-  }, [isPlaying, throwBomb, camera])
+  }, [isPlaying, isDrivingCar, throwBomb, camera])
 
-  useFrame((state, delta) => {
+  // Temporarily park the player body when they hop into the car
+  useEffect(() => {
+    if (!rigidBodyRef.current) return
+
+    if (isDrivingCar) {
+      const current = rigidBodyRef.current.translation()
+      storedPosition.current = [current.x, current.y, current.z]
+      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      rigidBodyRef.current.setBodyType("kinematicPosition", true)
+
+      movement.current.forward = false
+      movement.current.backward = false
+      movement.current.left = false
+      movement.current.right = false
+      movement.current.jump = false
+      movement.current.sprint = false
+    } else {
+      rigidBodyRef.current.setBodyType("dynamic", true)
+
+      if (storedPosition.current) {
+        rigidBodyRef.current.setTranslation(
+          {
+            x: storedPosition.current[0],
+            y: storedPosition.current[1],
+            z: storedPosition.current[2],
+          },
+          true,
+        )
+      }
+    }
+  }, [isDrivingCar])
+
+  useFrame((_, delta) => {
     if (!rigidBodyRef.current || !isPlaying) return
+    if (isDrivingCar) return
 
     const rb = rigidBodyRef.current
     const vel = rb.linvel()
