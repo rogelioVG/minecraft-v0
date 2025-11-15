@@ -7,6 +7,8 @@ import { ExplosionManager } from "./explosion-effect"
 import { DebrisManager } from "./debris"
 import { GhostManager } from "./ghost"
 import { HolyWaterManager } from "./holy-water"
+import { SpiritStable } from "./spirit-stable"
+import { RainEffect } from "./rain"
 import { useGameStore } from "@/lib/game-store"
 
 const WORLD_SIZE = 60
@@ -22,6 +24,7 @@ export function World() {
   return (
     <>
       <Ground size={WORLD_SIZE} />
+      <SpiritStable />
       {blocks.map((block) => (
         <Block key={block.id} id={block.id} position={block.position} type={block.type} />
       ))}
@@ -29,6 +32,7 @@ export function World() {
       <DebrisManager />
       <GhostManager />
       <HolyWaterManager />
+      <RainEffect />
     </>
   )
 }
