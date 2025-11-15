@@ -26,6 +26,7 @@ interface GameState {
   bombs: Bomb[]
   selectedBlockType: BlockType
   isPlaying: boolean
+  isDrivingCar: boolean
   explosionForces: ExplosionForce[]
   setSelectedBlockType: (type: BlockType) => void
   addBlock: (position: [number, number, number], type: BlockType) => void
@@ -33,6 +34,9 @@ interface GameState {
   makeBlockDynamic: (id: string) => void
   initializeWorld: (size: number, height: number) => void
   setIsPlaying: (playing: boolean) => void
+  enterCar: () => void
+  exitCar: () => void
+  toggleDrivingCar: () => void
   throwBomb: (position: [number, number, number], direction: [number, number, number]) => void
   removeBomb: (id: string) => void
   triggerExplosion: (position: [number, number, number], force: number, radius: number) => void
@@ -44,11 +48,19 @@ export const useGameStore = create<GameState>((set) => ({
   bombs: [],
   selectedBlockType: "grass",
   isPlaying: false,
+  isDrivingCar: false,
   explosionForces: [],
 
   setSelectedBlockType: (type) => set({ selectedBlockType: type }),
 
   setIsPlaying: (playing) => set({ isPlaying: playing }),
+
+  enterCar: () => set({ isDrivingCar: true }),
+  exitCar: () => set({ isDrivingCar: false }),
+  toggleDrivingCar: () =>
+    set((state) => ({
+      isDrivingCar: !state.isDrivingCar,
+    })),
 
   throwBomb: (position, direction) =>
     set((state) => ({

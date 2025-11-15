@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { Block } from "./block"
 import { Ground } from "./ground"
 import { Bomb } from "./bomb"
+import { Car } from "./car"
 import { DekuTree } from "./deku-tree"
 import { useGameStore } from "@/lib/game-store"
 
@@ -21,14 +22,15 @@ export function World() {
     <>
       <Ground size={WORLD_SIZE} />
       <DekuTree />
+      <Car />
       {blocks.map((block) => (
         <Block key={block.id} id={block.id} position={block.position} type={block.type} />
       ))}
       {bombs.map((bomb) => (
-        <Bomb 
-          key={bomb.id} 
-          id={bomb.id} 
-          position={bomb.position} 
+        <Bomb
+          key={bomb.id}
+          id={bomb.id}
+          position={bomb.position}
           direction={bomb.direction}
           onDetonate={removeBomb}
         />

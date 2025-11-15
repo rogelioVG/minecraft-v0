@@ -22,12 +22,20 @@ const BLOCK_NAMES: Record<BlockType, string> = {
 }
 
 export function UI() {
-  const { selectedBlockType, setSelectedBlockType, isPlaying } = useGameStore()
+  const { selectedBlockType, setSelectedBlockType, isPlaying, isDrivingCar } = useGameStore()
 
   if (!isPlaying) return null
 
   return (
     <>
+      {/* Vehicle instructions */}
+      <div className="absolute top-8 left-8 text-white text-sm space-y-1 max-w-xs pointer-events-none drop-shadow-[0_0_6px_rgba(0,0,0,0.5)]">
+        <p className="text-xs uppercase tracking-[0.2em] text-white/70">Vehicle</p>
+        <p>Stand next to the car and press V to enter or exit.</p>
+        <p>Use W/S to accelerate or reverse and A/D to steer.</p>
+        {isDrivingCar && <p className="text-emerald-300 text-xs font-semibold">Driving mode active</p>}
+      </div>
+
       {/* Crosshair */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
         <div className="relative w-8 h-8">
