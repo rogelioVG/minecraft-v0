@@ -1,6 +1,6 @@
 "use client"
 
-import { useGameStore, type BlockType } from "@/lib/game-store"
+import { useGameStore, type BlockType, type HorseId } from "@/lib/game-store"
 import { cn } from "@/lib/utils"
 
 const BLOCK_TYPES: BlockType[] = ["grass", "dirt", "stone", "wood", "sand"]
@@ -21,19 +21,77 @@ const BLOCK_NAMES: Record<BlockType, string> = {
   sand: "Sand",
 }
 
+const HORSE_LABELS: Record<HorseId, string> = {
+  colorado: "Colorado",
+  palomino: "Palomino",
+  azabache: "Azabache",
+  pinto: "Pinto",
+}
+
 export function UI() {
-  const { selectedBlockType, setSelectedBlockType, isPlaying, isDrivingCar } = useGameStore()
+  const {
+    selectedBlockType,
+    setSelectedBlockType,
+    isPlaying,
+    isDrivingCar,
+    isRidingHorse,
+    mountedHorseId,
+    isOnBoat,
+    playerHealth,
+    maxPlayerHealth,
+    playerLives,
+    lastCatch,
+  } = useGameStore()
 
   if (!isPlaying) return null
 
+  const healthPercent = Math.max(0, Math.min(100, (playerHealth / maxPlayerHealth) * 100))
+  const livesArray = Array.from({ length: 3 }).map((_, index) => index < playerLives)
+
   return (
     <>
-      {/* Vehicle instructions */}
-      <div className="absolute top-8 left-8 text-white text-sm space-y-1 max-w-xs pointer-events-none drop-shadow-[0_0_6px_rgba(0,0,0,0.5)]">
-        <p className="text-xs uppercase tracking-[0.2em] text-white/70">Vehicle</p>
-        <p>Stand next to the car and press V to enter or exit.</p>
-        <p>Use W/S to accelerate or reverse and A/D to steer.</p>
-        {isDrivingCar && <p className="text-emerald-300 text-xs font-semibold">Driving mode active</p>}
+      {/* Vehicle & mount instructions */}
+      <div className="absolute top-8 left-8 text-white text-sm space-y-2 max-w-sm pointer-events-none drop-shadow-[0_0_6px_rgba(0,0,0,0.6)]">
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-white/70">Camioneta</p>
+          <p>Acércate y presiona V para subirte o bajarte.</p>
+          <p>W/S aceleran, A/D giran. {isDrivingCar && <span className="text-emerald-300 font-semibold">En manejo.</span>}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-white/70">Caballos</p>
+          <p>H para montar/desmontar. L para lazar o soltar.</p>
+          {isRidingHorse && mountedHorseId && (
+            <p className="text-orange-200 font-semibold">Cabalgando al {HORSE_LABELS[mountedHorseId]}</p>
+          )}
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-white/70">Presa</p>
+          <p>B para subirte al barco, F para pescar.</p>
+          {isOnBoat && <p className="text-sky-200 font-semibold">Navegando la presa.</p>}
+        </div>
+      </div>
+
+      {/* Health HUD */}
+      <div className="absolute top-8 right-8 text-white text-sm pointer-events-none flex flex-col gap-2 items-end drop-shadow-[0_0_6px_rgba(0,0,0,0.6)]">
+        <p className="text-xs uppercase tracking-[0.3em] text-white/70">Salud</p>
+        <div className="w-52 h-4 bg-white/10 rounded-full overflow-hidden border border-white/20">
+          <div
+            className="h-full bg-emerald-400"
+            style={{ width: `${healthPercent}%`, transition: "width 0.2s linear" }}
+          />
+        </div>
+        <div className="flex gap-1 text-lg">
+          {livesArray.map((alive, index) => (
+            <span key={index} className={alive ? "text-rose-300" : "text-white/20"}>
+              ♥
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Hazard reminder */}
+      <div className="absolute top-32 left-1/2 -translate-x-1/2 text-white text-xs bg-black/40 px-4 py-2 rounded-full pointer-events-none">
+        Choyas = daño inmediato — busca rutas de arena limpia.
       </div>
 
       {/* Crosshair */}
@@ -67,6 +125,14 @@ export function UI() {
             <span className="sr-only">{BLOCK_NAMES[type]}</span>
           </button>
         ))}
+      </div>
+      {/* Ranch tips */}
+      <div className="absolute bottom-32 left-8 text-white/90 text-sm space-y-1 pointer-events-none max-w-sm">
+        <p className="text-xs uppercase tracking-[0.3em] text-white/60">Rancho</p>
+        <p>Construye con bloques (selector abajo) para extender el corral.</p>
+        <p>Los caballos lazados no se moverán del poste; suéltalos para galopar.</p>
+        <p>Mantente atento al mensaje de pesca cuando lances la línea.</p>
+        {lastCatch && <p className="text-amber-200 font-semibold">Pesca: {lastCatch}</p>}
       </div>
     </>
   )

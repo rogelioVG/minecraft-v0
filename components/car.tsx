@@ -17,6 +17,8 @@ export function Car() {
   const { camera } = useThree()
   const isPlaying = useGameStore((state) => state.isPlaying)
   const isDrivingCar = useGameStore((state) => state.isDrivingCar)
+  const isRidingHorse = useGameStore((state) => state.isRidingHorse)
+  const isOnBoat = useGameStore((state) => state.isOnBoat)
   const enterCar = useGameStore((state) => state.enterCar)
   const exitCar = useGameStore((state) => state.exitCar)
 
@@ -35,7 +37,7 @@ export function Car() {
   const cameraFollowOffset = useRef(new Vector3(0, 2.5, 6))
 
   const canEnterCar = () => {
-    if (!rigidBodyRef.current) return false
+    if (!rigidBodyRef.current || isRidingHorse || isOnBoat) return false
 
     const carPos = rigidBodyRef.current.translation()
     const dx = camera.position.x - carPos.x
@@ -48,7 +50,7 @@ export function Car() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isPlaying) return
+      if (!isPlaying || isRidingHorse || isOnBoat) return
 
       if (e.code === "KeyV") {
         e.preventDefault()
@@ -112,7 +114,7 @@ export function Car() {
       document.removeEventListener("keydown", handleKeyDown)
       document.removeEventListener("keyup", handleKeyUp)
     }
-  }, [isPlaying, isDrivingCar, enterCar, exitCar, camera])
+  }, [isPlaying, isDrivingCar, isRidingHorse, isOnBoat, enterCar, exitCar, camera])
 
   useEffect(() => {
     if (!isDrivingCar) {
